@@ -168,7 +168,7 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v1.6</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v1.7</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
@@ -245,7 +245,7 @@
       <h2>Categories & Filters</h2>
       <p>Filter hierarchy per category. Source of truth: <code>products/product-categories-import.csv</code> and Webflow CMS.</p>
 
-      <h3>CMC Lifts <span class="badge badge-blue">4 filter levels</span></h3>
+      <h3>CMC Lifts <span class="badge badge-blue">5 filter levels</span></h3>
       <table>
         <thead><tr><th>Level</th><th>Filter Label</th><th>Filter Values</th></tr></thead>
         <tbody>
@@ -313,7 +313,11 @@
           <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners. On change: resets levels 4–5, applies filters, shows Level 4 if any L3 checked, updates availability.</td></tr>
           <tr><td><code>showLevel4(categorySlug)</code></td><td>Shows Level 4 wrapper only if a matching <code>data-filter-list-id</code> group exists (Lift Carriers returns early — no Level 4). Fork keyed via <code>getLevel3ForkParent()</code>.</td></tr>
           <tr><td><code>updateLevel4Availability()</code></td><td>Mutes Level 4 items based on currently VISIBLE products. Skips fork-hidden items.</td></tr>
-          <tr><td><code>initLevel4()</code></td><td>Attaches <code>change</code> listeners to Level 4 checkboxes; calls applyFilters + updateLevel4Availability</td></tr>
+          <tr><td><code>initLevel4()</code></td><td>Attaches <code>change</code> listeners. On change: resets level 5, applies filters, shows Level 5 if any L4 checked.</td></tr>
+          <tr><td><code>showLevel5(categorySlug)</code></td><td>Shows Level 5 only if activeGroup has items (Carlton/Trailers/Lift Carriers have empty Level 5 groups). Non-fork for CMC Lifts. Fork-ready via <code>getLevel4ForkParent()</code>.</td></tr>
+          <tr><td><code>updateLevel5Availability()</code></td><td>Mutes Level 5 items based on currently VISIBLE products. Skips fork-hidden items.</td></tr>
+          <tr><td><code>initLevel5()</code></td><td>Attaches <code>change</code> listeners to Level 5 checkboxes; calls applyFilters + updateLevel5Availability</td></tr>
+          <tr><td><code>getLevel4ForkParent(slug)</code></td><td>Returns fork parent key from visible Level 4 items — used by <code>showLevel5()</code></td></tr>
         </tbody>
       </table>
 
@@ -421,6 +425,16 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.7</div>
+        <ul>
+          <li><strong>Level 5 cascade:</strong> <code>showLevel5()</code>, <code>updateLevel5Availability()</code>, <code>initLevel5()</code> — CMC Lifts only (Lift Carrier Compatible Yes/No)</li>
+          <li><strong><code>initLevel4()</code> updated:</strong> resets Level 5 on change; shows Level 5 when any L4 is checked</li>
+          <li><strong><code>getLevel4ForkParent()</code></strong> added — parallel to <code>getLevel3ForkParent()</code>, for future L5 fork support</li>
+          <li><strong>Fix: <code>showLevel4()</code> empty group check</strong> — Lift Carriers has an empty <code>[data-filter-list-id="lift-carriers"]</code> group in the Level 4 DOM; added <code>hasItems</code> guard so the container stays hidden (same pattern already used in <code>showLevel5()</code>)</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-25 — v1.6</div>
