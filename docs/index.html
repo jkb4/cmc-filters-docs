@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMC Filters Engine v2.0 — Docs</title>
+  <title>CMC Filters Engine v2.1 — Docs</title>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -11,7 +11,8 @@
       --border: #2a2a2a;
       --text: #e8e8e8;
       --muted: #888;
-      --accent: #4f8ef7;
+      --accent: #da0a14;
+      --accent-hover: #ee1621;
       --green: #4caf82;
       --yellow: #f0b429;
       --red: #e05252;
@@ -34,8 +35,8 @@
       height: 52px;
       z-index: 100;
     }
-    nav .logo { font-weight: 700; font-size: 15px; color: var(--text); letter-spacing: -0.3px; }
-    nav .logo span { color: var(--accent); }
+    nav .logo { font-weight: 700; font-size: 15px; color: var(--accent); letter-spacing: -0.3px; }
+    nav .logo span { color: var(--text); }
     nav a { color: var(--muted); text-decoration: none; font-size: 13px; }
     nav a:hover { color: var(--text); }
     .layout { display: flex; min-height: calc(100vh - 52px); }
@@ -101,13 +102,13 @@
       display: inline-block; padding: 2px 8px; border-radius: 4px;
       font-size: 11px; font-weight: 600; letter-spacing: 0.03em;
     }
-    .badge-blue { background: #1a2d4f; color: var(--accent); }
+    .badge-blue { background: #2d0a0c; color: var(--accent); }
     .badge-green { background: #152d20; color: var(--green); }
     .badge-yellow { background: #2d2010; color: var(--yellow); }
     .callout {
       border: 1px solid var(--border);
       border-left: 3px solid var(--accent);
-      background: #141b26;
+      background: #1a0a0b;
       border-radius: 6px;
       padding: 12px 16px;
       margin: 12px 0 20px;
@@ -133,6 +134,7 @@
 <nav>
   <span class="logo">CMC <span>Filters</span></span>
   <a href="#overview">Overview</a>
+  <a href="#ux">User Experience</a>
   <a href="#attributes">Attributes</a>
   <a href="#engine">Engine</a>
   <a href="#categories">Categories</a>
@@ -148,6 +150,17 @@
       <li><a href="#equip2-embed">equip2_wrap Embeds</a></li>
       <li><a href="#structure">File Structure</a></li>
     </ul>
+    <div class="section-gap">
+      <h3>User Experience</h3>
+      <ul>
+        <li><a href="#ux">UX Overview</a></li>
+        <li><a href="#ux-flow">Step-by-step Flow</a></li>
+        <li><a href="#ux-muting">Muting Behavior</a></li>
+        <li><a href="#ux-tags">Filter Tags</a></li>
+        <li><a href="#ux-cascade">Cascade Reset</a></li>
+        <li><a href="#ux-categories">Per-category Notes</a></li>
+      </ul>
+    </div>
     <div class="section-gap">
       <h3>Reference</h3>
       <ul>
@@ -170,7 +183,7 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v2.0</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v2.1</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
@@ -390,8 +403,10 @@
       </table>
 
       <h3>Designer mode guard</h3>
-      <pre><code>const IS_DESIGNER = document.documentElement.hasAttribute('wf-designer');
-// initLevelVisibility() skips hiding when IS_DESIGNER is true</code></pre>
+      <pre><code>// wf-design-mode and w-editor are classes on &lt;html&gt;, not attributes
+const IS_DESIGNER = document.documentElement.classList.contains('wf-design-mode') ||
+                    document.documentElement.classList.contains('w-editor');
+// initLevelVisibility() skips hiding levels when IS_DESIGNER is true</code></pre>
 
       <h3>Level 2 muting call order (on checkbox change)</h3>
       <pre><code>applyFilters()
@@ -492,8 +507,198 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
       </p>
     </section>
 
+    <section id="ux">
+      <h2>User Experience</h2>
+      <p class="subtitle">Written for designers. No code — just behavior.</p>
+      <p>
+        The filter system is a progressive multi-step funnel. Each step narrows the product list.
+        Steps appear one at a time as the user makes selections — the page never shows all filters at once.
+        Selected filters are reflected as tag chips below the dropdowns.
+      </p>
+
+      <h2 id="ux-flow">Step-by-step Flow</h2>
+
+      <h3>Step 1 — Equipment Type (always visible)</h3>
+      <p>
+        A radio button group. The user picks one category: <strong>CMC Lifts</strong>, <strong>Lift Carriers</strong>,
+        <strong>Trailers</strong>, or <strong>Carlton</strong>. Only one can be selected at a time.
+        Selecting a category immediately:
+      </p>
+      <ul style="padding-left:20px; color:#ccc; margin-bottom:12px;">
+        <li style="margin-bottom:4px">Filters the product list to show only that category</li>
+        <li style="margin-bottom:4px">Reveals <strong>Step 2</strong> with options relevant to that category</li>
+        <li style="margin-bottom:4px">Adds a tag chip for the selected category</li>
+      </ul>
+
+      <h3>Step 2 — Primary Filter (appears after Step 1)</h3>
+      <p>
+        A checkbox group. The user can select <strong>one or more values</strong>. Checking any box:
+      </p>
+      <ul style="padding-left:20px; color:#ccc; margin-bottom:12px;">
+        <li style="margin-bottom:4px">Further narrows the product list</li>
+        <li style="margin-bottom:4px">Reveals <strong>Step 3</strong></li>
+        <li style="margin-bottom:4px">Adds a tag chip for each checked value</li>
+      </ul>
+      <p>
+        The label above Step 2 changes per category — e.g. <em>Application</em> for CMC Lifts,
+        <em>Compatible with</em> for Lift Carriers, <em>Brand</em> for Trailers, <em>Carlton Type</em> for Carlton.
+      </p>
+      <div class="callout fork">
+        <strong>Carlton only — Step 2 is a fork.</strong> Stump Grinder and Wood Chipper are mutually exclusive.
+        Checking one immediately mutes the other. The entire Step 3 and Step 4 content changes
+        depending on which branch the user is on. See <a href="#ux-categories" style="color:var(--accent)">Carlton notes</a> below.
+      </div>
+
+      <h3>Step 3 — Secondary Filter (appears after Step 2)</h3>
+      <p>
+        Another checkbox group. Appears only when at least one Step 2 value is checked.
+        Selecting a value reveals <strong>Step 4</strong> (if the category has one).
+      </p>
+
+      <h3>Step 4 — Tertiary Filter (appears after Step 3)</h3>
+      <p>
+        Another checkbox group. Appears only when at least one Step 3 value is checked.
+        For <strong>CMC Lifts</strong>, selecting a value here reveals <strong>Step 5</strong>.
+        Lift Carriers <strong>never has a Step 4</strong> — the level is skipped entirely.
+      </p>
+
+      <h3>Step 5 — Lift Carrier Compatible (CMC Lifts only)</h3>
+      <p>
+        Appears only for <strong>CMC Lifts</strong>, only after a Step 4 selection.
+        Has two values: <strong>Yes</strong> and <strong>No</strong>.
+        No other category uses Step 5 — the container exists in the DOM but stays permanently hidden for Carlton, Trailers, and Lift Carriers.
+      </p>
+
+      <h2 id="ux-muting">Muting Behavior</h2>
+      <p>
+        Muted items appear at <strong>50% opacity</strong> and are <strong>not clickable</strong>.
+        Muting communicates "this filter exists but no products match it given your current selections."
+        It is not a disabled state — it is a contextual hint.
+      </p>
+
+      <h3>Step 2 muting — static availability</h3>
+      <p>
+        Step 2 items are muted based on the <strong>entire selected category</strong>.
+        If no product in e.g. CMC Lifts has the filter "Contractor &amp; Rental", that checkbox is muted from the start.
+        This check runs once when the category is selected and again after any Step 2 change.
+      </p>
+
+      <h3>Step 3 muting — dynamic availability</h3>
+      <p>
+        Step 3 items are muted based on <strong>currently visible products</strong> — not the full category.
+        As the user checks Step 2 boxes and the product list narrows, Step 3 availability updates in real time.
+        A Step 3 value is muted if no currently-visible product has that filter.
+      </p>
+
+      <h3>Step 4 &amp; 5 muting — same as Step 3</h3>
+      <p>
+        Same dynamic logic — muted if no currently visible product has that filter value.
+        Fork-hidden items (Carlton branch items that don't belong to the active branch)
+        are never affected by muting logic — they remain hidden, not muted.
+      </p>
+
+      <h3>Carlton fork muting — mutual exclusion</h3>
+      <p>
+        In Carlton Step 2, <strong>Stump Grinder</strong> and <strong>Wood Chipper</strong> are mutually exclusive.
+        Once the user checks one, the other becomes muted and unclickable.
+        This prevents impossible filter combinations (a product cannot be both).
+        If the user removes the checked value (via tag or by unchecking), both options become available again.
+      </p>
+
+      <h2 id="ux-tags">Filter Tags</h2>
+      <p>
+        A strip of tag chips appears below the filter dropdowns whenever any filter is active.
+        Each chip shows the human-readable label of the selected filter (e.g. <em>Arbor</em>, <em>40–60 ft</em>).
+        The strip is hidden when no filters are active.
+      </p>
+
+      <h3>Tag rules</h3>
+      <ul style="padding-left:20px; color:#ccc; margin-bottom:12px;">
+        <li style="margin-bottom:4px"><strong>One tag per selection</strong> — each checked checkbox or selected radio gets its own chip</li>
+        <li style="margin-bottom:4px"><strong>Step 1 has only one tag</strong> — selecting a new category replaces the previous tag</li>
+        <li style="margin-bottom:4px"><strong>Tags appear left to right</strong> in the order the user selected them (L1 first, L5 last)</li>
+        <li style="margin-bottom:4px"><strong>Clicking ✕ on a tag</strong> removes that filter and clears all downstream steps and their tags</li>
+        <li style="margin-bottom:4px"><strong>Manually unchecking a checkbox</strong> also removes its tag from the strip</li>
+      </ul>
+
+      <div class="callout">
+        <strong>Example:</strong> User has selected CMC Lifts → Arbor → 40–60 ft → 23–30 ft.
+        Four tags are visible. Clicking ✕ on "Arbor" removes the Arbor tag, clears Steps 3/4/5,
+        and re-runs the product filter. Steps 3–5 disappear. The product list updates immediately.
+      </div>
+
+      <h2 id="ux-cascade">Cascade Reset Rules</h2>
+      <p>
+        Every time a higher-level filter changes, all downstream steps are fully reset —
+        hidden, unchecked, and their tags removed. This prevents impossible combinations
+        like having a Working Height selected but no Application selected.
+      </p>
+      <table>
+        <thead><tr><th>User action</th><th>What gets reset</th></tr></thead>
+        <tbody>
+          <tr><td>Changes Step 1 (new category)</td><td>Steps 2, 3, 4, 5 — all hidden and unchecked</td></tr>
+          <tr><td>Checks or unchecks any Step 2 box</td><td>Steps 3, 4, 5 — hidden and unchecked</td></tr>
+          <tr><td>Checks or unchecks any Step 3 box</td><td>Steps 4, 5 — hidden and unchecked</td></tr>
+          <tr><td>Checks or unchecks any Step 4 box</td><td>Step 5 — hidden and unchecked</td></tr>
+          <tr><td>Checks or unchecks any Step 5 box</td><td>Nothing — Step 5 is the last level</td></tr>
+          <tr><td>Clicks ✕ on a Step 1 tag</td><td>Steps 2, 3, 4, 5 — all hidden and unchecked</td></tr>
+          <tr><td>Clicks ✕ on a Step 2 tag</td><td>Steps 3, 4, 5 — hidden and unchecked</td></tr>
+          <tr><td>Clicks ✕ on a Step 3 tag</td><td>Steps 4, 5 — hidden and unchecked</td></tr>
+          <tr><td>Clicks ✕ on a Step 4 tag</td><td>Step 5 — hidden and unchecked</td></tr>
+        </tbody>
+      </table>
+      <p>
+        The product list re-filters after every reset. If all steps are cleared, all products
+        in the selected category are shown. If Step 1 is also cleared, all products across
+        all categories are shown.
+      </p>
+
+      <h2 id="ux-categories">Per-category Notes</h2>
+
+      <h3>CMC Lifts <span class="badge badge-blue">5 steps</span></h3>
+      <p>The deepest category — all five filter steps are available. Step 5 (Lift Carrier Compatible: Yes/No) is exclusive to this category and appears only after a Step 4 selection.</p>
+
+      <h3>Lift Carriers <span class="badge badge-blue">2 steps</span></h3>
+      <p>Steps 1–3 only. Step 4 is permanently hidden — Lift Carriers has no Level 4 filters. The Level 4 group exists in the DOM but is empty, so the container stays hidden. Step 5 never appears.</p>
+
+      <h3>Trailers <span class="badge badge-blue">3 steps</span></h3>
+      <p>Steps 1–4. Step 5 never appears.</p>
+
+      <h3>Carlton <span class="badge badge-green">Fork</span></h3>
+      <p>
+        Steps 1–4, but Step 2 is a <strong>fork point</strong>. The user chooses either
+        <strong>Stump Grinder</strong> or <strong>Wood Chipper</strong> — not both.
+        This choice determines the content of Steps 3 and 4 entirely:
+      </p>
+      <table>
+        <thead><tr><th>Step</th><th>Stump Grinder branch</th><th>Wood Chipper branch</th></tr></thead>
+        <tbody>
+          <tr><td>Step 3 label</td><td>Drive Type</td><td>Cutting System</td></tr>
+          <tr><td>Step 3 values</td><td>Tracks · Wheels</td><td>Disc · Drum</td></tr>
+          <tr><td>Step 4 label</td><td>Horsepower</td><td>Capacity</td></tr>
+          <tr><td>Step 4 values</td><td>35–40 HP · 54–56 HP · 74 HP · 116–134 HP · 140–173 HP · 300 HP</td><td>7" · 9" · 12" · 15" · 18" · 21"</td></tr>
+        </tbody>
+      </table>
+      <p>
+        When the user selects a branch, the other branch's Step 3/4 items are completely hidden
+        (not muted — fully invisible). Switching branch is only possible by removing the Step 2 tag
+        or unchecking the Step 2 value, which resets Steps 3–5.
+      </p>
+
+    </section>
+
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-26 — v2.1</div>
+        <ul>
+          <li><strong>Radio focus outline fix:</strong> browser UA stylesheet was drawing a blue native focus ring on the hidden <code>&lt;input type="radio"&gt;</code> (opacity:0 does not suppress outlines in Chrome) — root cause: <code>:focus-within</code> on the parent <code>.w-radio</code> label propagating to the custom div</li>
+          <li><strong>Fix approach:</strong> <code>outline: 2px solid transparent !important</code> on <code>.equip2_dropdown_radio_btn</code> in all focus states (<code>:focus</code>, <code>:active</code>, <code>:focus-within</code>), plus <code>.equip2_dropdown_radio_wrap:focus-within .equip2_dropdown_radio_btn</code> — <code>transparent</code> overrides browser UA rings more reliably than <code>none</code></li>
+          <li><strong>Keyboard accessibility preserved:</strong> <code>.equip2_dropdown_radio_wrap:has(input:focus-visible) .equip2_dropdown_radio_btn</code> re-shows the outline only on keyboard navigation (Tab key)</li>
+          <li><strong>Hidden input:</strong> <code>outline: none !important</code> also added on <code>input[type="radio"]:focus</code> and <code>:focus-visible</code> explicitly to suppress UA styles at source</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-25 — v2.0</div>
@@ -506,6 +711,8 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
           <li><strong>ARIA:</strong> <code>aria-label</code> added to all radios, checkboxes (L1–L5 init listeners), and tag buttons</li>
           <li><strong><code>filters_engine.css</code>:</strong> first content — hides skeleton (<code>display:none !important</code>), hides empty slot (<code>:empty</code>)</li>
           <li><strong>DOM note:</strong> skeleton has typo <code>dtaa-filters-tags="tag-button"</code> — JS selects <code>button</code> by parent selector so it works; fix the typo in Webflow when convenient</li>
+          <li><strong><code>IS_DESIGNER</code> fix:</strong> was <code>hasAttribute('wf-designer')</code> — corrected to <code>classList.contains('wf-design-mode') || classList.contains('w-editor')</code> (Webflow uses classes, not attributes)</li>
+          <li><strong>CSS designer override:</strong> was <code>html[wf-designer]</code> (attribute) — corrected to <code>html.wf-design-mode</code> and <code>html.w-editor</code> (classes)</li>
         </ul>
       </div>
 
