@@ -1,5 +1,6 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
-const IS_DESIGNER = document.documentElement.hasAttribute('wf-designer');
+const IS_DESIGNER = document.documentElement.classList.contains('wf-design-mode') ||
+                    document.documentElement.classList.contains('w-editor');
 
 // ─── Helper: display name to slug ────────────────────────────────────────────
 function toSlug(str) {
@@ -53,6 +54,69 @@ function getLevel4ForkParent(categorySlug) {
   return found;
 }
 
+// ─── Tags: clear all tags for a given level ──────────────────────────────────
+function clearTagsForLevel(levelNum) {
+  var slot = document.querySelector('[data-filters-tags="slot"]');
+  if (!slot) return;
+  slot.querySelectorAll('[data-tag-level="' + levelNum + '"]').forEach(function (tag) {
+    tag.remove();
+  });
+}
+
+// ─── Tags: remove tag for a specific filter value ────────────────────────────
+function removeTagForValue(filterValue, levelNum) {
+  var slot = document.querySelector('[data-filters-tags="slot"]');
+  if (!slot) return;
+  slot.querySelectorAll('[data-tag-level="' + levelNum + '"][data-tag-value="' + filterValue + '"]').forEach(function (tag) {
+    tag.remove();
+  });
+}
+
+// ─── Tags: add a tag chip for a checked filter input ─────────────────────────
+// Clones the skeleton button, writes the label, attaches a click-to-remove handler.
+function addTag(inputEl, levelNum) {
+  var slot = document.querySelector('[data-filters-tags="slot"]');
+  var skeletonBtn = document.querySelector('[data-filters-tags="skeleton"] button');
+  if (!slot || !skeletonBtn) return;
+
+  var labelText = inputEl.getAttribute('data-filter-tag-label-post');
+  if (!labelText) return;
+
+  var filterValue = inputEl.getAttribute('n4-list-value') || '';
+
+  var tag = skeletonBtn.cloneNode(true);
+  tag.setAttribute('data-tag-level', levelNum);
+  tag.setAttribute('data-tag-value', filterValue);
+  tag.setAttribute('type', 'button');
+  tag.setAttribute('aria-label', 'Remove filter: ' + labelText);
+
+  var labelEl = tag.querySelector('[data-filters-tag-label="label-get"]');
+  if (labelEl) labelEl.textContent = labelText;
+
+  tag.addEventListener('click', function () {
+    tag.remove();
+
+    if (levelNum === 1) {
+      // Radio: deselect + full cascade reset
+      inputEl.checked = false;
+      inputEl.classList.remove('w--redirected-checked');
+      var radioWrap = inputEl.closest('.w-radio');
+      if (radioWrap) radioWrap.classList.remove('is-list-active');
+      var radioBtn = inputEl.parentElement && inputEl.parentElement.querySelector('.w-radio-input');
+      if (radioBtn) radioBtn.classList.remove('w--redirected-checked');
+      resetLevels(); // also clears tags for levels 2-5
+      applyFilters();
+    } else {
+      // Checkbox: uncheck + dispatch change to trigger existing cascade logic
+      inputEl.checked = false;
+      inputEl.classList.remove('w--redirected-checked');
+      inputEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  });
+
+  slot.appendChild(tag);
+}
+
 // ─── Level 1: count items ─────────────────────────────────────────────────────
 (function updateLevel1Count() {
   const wrap = document.querySelector('[data-filter-dropdown="level-1-filters-wrap"]');
@@ -71,8 +135,9 @@ function getLevel4ForkParent(categorySlug) {
   });
 })();
 
-// ─── Reset a single level (uncheck, hide, clear count/label) ─────────────────
+// ─── Reset a single level (uncheck, hide, clear count/label, remove tags) ────
 function resetLevel(levelNum) {
+  clearTagsForLevel(levelNum);
   const levelKey = 'level-' + levelNum;
   const el = document.querySelector('[data-filters-dropdown="' + levelKey + '"]');
   if (!el) return;
@@ -136,8 +201,8 @@ function applyFilters() {
     const categoryEl = item.querySelector('[n4-list-field="category"]');
     const productCategory = categoryEl ? categoryEl.textContent.trim() : '';
 
-    // Level 1 gate: category must match
-    const categoryMatch = !selectedCategory || productCategory === selectedCategory;
+    // Level 1 gate: category must match (radio value is a slug, product text is display name)
+    const categoryMatch = !selectedCategory || toSlug(productCategory) === selectedCategory;
 
     // Collect all product filter slugs once
     const productFilters = [];
@@ -162,9 +227,16 @@ function applyFilters() {
   if (!level1Wrap) return;
 
   level1Wrap.querySelectorAll('input[type="radio"]').forEach(function (radio) {
+    // ARIA: label each radio with its display name
+    const radioLabel = radio.closest('label');
+    const labelText = radio.getAttribute('data-filter-tag-label-post') || (radioLabel ? radioLabel.textContent.trim() : '');
+    if (labelText) radio.setAttribute('aria-label', labelText);
+
     radio.addEventListener('change', function () {
-      const categorySlug = toSlug(this.getAttribute('n4-list-value'));
-      resetLevels();
+      const categorySlug = this.getAttribute('n4-list-value'); // value is already a slug
+      clearTagsForLevel(1);    // remove previous L1 tag
+      resetLevels();            // resets L2-5 + clears their tags
+      addTag(this, 1);          // add tag for newly selected category
       showLevel2(categorySlug);
       updateLevel2Availability();
       applyFilters();
@@ -207,7 +279,7 @@ function updateLevel2Availability() {
   document.querySelectorAll('[n4-filters-item]').forEach(function (item) {
     const categoryEl = item.querySelector('[n4-list-field="category"]');
     const productCategory = categoryEl ? categoryEl.textContent.trim() : '';
-    if (!selectedCategory || productCategory === selectedCategory) {
+    if (!selectedCategory || toSlug(productCategory) === selectedCategory) {
       item.querySelectorAll('[n4-list-field="filter"]').forEach(function (p) {
         availableFilters.add(p.getAttribute('n4-list-value'));
       });
@@ -271,11 +343,22 @@ function updateLevel2ForkMuting(categorySlug) {
   if (!level2) return;
 
   level2.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    // ARIA: label each checkbox with its display name
+    const cbLabelText = cb.getAttribute('data-filter-tag-label-post') || '';
+    if (cbLabelText) cb.setAttribute('aria-label', cbLabelText);
+
     cb.addEventListener('change', function () {
-      // Cascade reset: Level 2 change clears all downstream levels
+      // Cascade reset: Level 2 change clears all downstream levels (also clears their tags)
       resetLevel(3);
       resetLevel(4);
       resetLevel(5);
+
+      // Tag: add on check, remove on uncheck
+      if (this.checked) {
+        addTag(this, 2);
+      } else {
+        removeTagForValue(this.getAttribute('n4-list-value'), 2);
+      }
 
       applyFilters();
 
@@ -409,10 +492,21 @@ function updateLevel3Availability() {
   if (!level3) return;
 
   level3.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    // ARIA: label each checkbox with its display name
+    const cbLabelText = cb.getAttribute('data-filter-tag-label-post') || '';
+    if (cbLabelText) cb.setAttribute('aria-label', cbLabelText);
+
     cb.addEventListener('change', function () {
-      // Cascade reset: Level 3 change clears all downstream levels
+      // Cascade reset: Level 3 change clears all downstream levels (also clears their tags)
       resetLevel(4);
       resetLevel(5);
+
+      // Tag: add on check, remove on uncheck
+      if (this.checked) {
+        addTag(this, 3);
+      } else {
+        removeTagForValue(this.getAttribute('n4-list-value'), 3);
+      }
 
       applyFilters();
       updateLevel3Availability();
@@ -525,9 +619,20 @@ function updateLevel4Availability() {
   if (!level4) return;
 
   level4.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    // ARIA: label each checkbox with its display name
+    const cbLabelText = cb.getAttribute('data-filter-tag-label-post') || '';
+    if (cbLabelText) cb.setAttribute('aria-label', cbLabelText);
+
     cb.addEventListener('change', function () {
-      // Cascade reset: Level 4 change clears Level 5
+      // Cascade reset: Level 4 change clears Level 5 (also clears L5 tags)
       resetLevel(5);
+
+      // Tag: add on check, remove on uncheck
+      if (this.checked) {
+        addTag(this, 4);
+      } else {
+        removeTagForValue(this.getAttribute('n4-list-value'), 4);
+      }
 
       applyFilters();
       updateLevel4Availability();
@@ -640,7 +745,17 @@ function updateLevel5Availability() {
   if (!level5) return;
 
   level5.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    // ARIA: label each checkbox with its display name
+    const cbLabelText = cb.getAttribute('data-filter-tag-label-post') || '';
+    if (cbLabelText) cb.setAttribute('aria-label', cbLabelText);
+
     cb.addEventListener('change', function () {
+      // Tag: add on check, remove on uncheck
+      if (this.checked) {
+        addTag(this, 5);
+      } else {
+        removeTagForValue(this.getAttribute('n4-list-value'), 5);
+      }
       applyFilters();
       updateLevel5Availability();
     });

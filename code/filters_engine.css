@@ -1,0 +1,14 @@
+  /* Filters Engine CSS */
+
+  /* Hide skeleton tag button, used only as JS clone source */
+  [data-filters-tags="skeleton"] {
+      display: none;
+  }
+
+  /* Webflow Designer and Editor preview */
+  html.wf-design-mode [data-filters-tags="skeleton"],
+  html.wf-design-mode [data-filters-tags="slot"],
+  html.w-editor [data-filters-tags="skeleton"],
+  html.w-editor [data-filters-tags="slot"] {
+      display: block !important;
+  }

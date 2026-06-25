@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMC Filters Engine — Docs</title>
+  <title>CMC Filters Engine v2.0 — Docs</title>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -144,6 +144,8 @@
     <h3>Getting Started</h3>
     <ul>
       <li><a href="#overview" class="active">Overview</a></li>
+      <li><a href="#local-vs-webflow">Local vs Webflow</a></li>
+      <li><a href="#equip2-embed">equip2_wrap Embeds</a></li>
       <li><a href="#structure">File Structure</a></li>
     </ul>
     <div class="section-gap">
@@ -168,21 +170,70 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v1.7</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v2.0</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
         multi-level filter hierarchy. Supports up to 5 visible levels with cascading show/hide,
         availability muting, and Carlton's fork logic (conditional Level 3/4 based on Level 2 choice).
         Each level acts as a gate — AND between levels, OR within a level.
-        All logic lives in <code>code/filters_engine.js</code>.
       </p>
+
+      <h2 id="local-vs-webflow">Local vs Webflow</h2>
+      <p>The system is split across two places — local files you edit here, and Webflow where they are deployed.</p>
+
+      <h3>Local (this repo)</h3>
+      <table>
+        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>code/filters_engine.js</code></td><td>Main filter logic — all JS functions. Paste into Webflow JS embed after editing.</td></tr>
+          <tr><td><code>code/filters_engine.css</code></td><td>Filter UI overrides — currently empty, reserved. Paste into Webflow CSS embed when needed.</td></tr>
+          <tr><td><code>docs/index.html</code></td><td>This documentation file.</td></tr>
+          <tr><td><code>products/import-1-filter-labels.csv</code></td><td>Filter Labels CMS collection import.</td></tr>
+          <tr><td><code>products/import-2-filter-values.csv</code></td><td>Filters CMS collection import.</td></tr>
+          <tr><td><code>products/product-categories-import.csv</code></td><td>Categories reference.</td></tr>
+          <tr><td><code>products/schema-products-collection.csv</code></td><td>Products schema reference.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Webflow</h3>
+      <table>
+        <thead><tr><th>Location</th><th>What lives there</th></tr></thead>
+        <tbody>
+          <tr><td>CMS Collections</td><td>Filter Labels, Filters, Products — source of truth for all filter values and slugs.</td></tr>
+          <tr><td>Designer — filter form</td><td><code>n4-*</code> and <code>data-*</code> attributes on inputs, items, and wrappers.</td></tr>
+          <tr><td>Designer — product list</td><td><code>n4-filters-item</code>, <code>n4-list-field</code>, <code>n4-list-value</code> on product cards.</td></tr>
+          <tr><td><code>equip2_wrap</code> section — Custom Code embeds</td><td>Two embeds: <code>filters_engine.css</code> (CSS, empty) + <code>filters_engine.js</code> (JS engine).</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="equip2-embed">equip2_wrap — Code Embeds</h2>
+      <p>
+        Both files are deployed as <strong>Custom Code embed</strong> elements inside the
+        <code>equip2_wrap</code> Webflow section. Order matters: CSS embed first, JS embed second.
+      </p>
+
+      <h3>Filters Engine CSS</h3>
+      <p>Custom Code embed — wraps contents of <code>code/filters_engine.css</code>. Currently empty, reserved for filter UI overrides (e.g. muted state styles, active state overrides).</p>
+      <pre><code>&lt;style&gt;
+/* paste code/filters_engine.css here */
+&lt;/style&gt;</code></pre>
+
+      <h3>Filters Engine JS</h3>
+      <p>Custom Code embed — wraps contents of <code>code/filters_engine.js</code>. Runs on page load; no <code>DOMContentLoaded</code> wrapper needed (Webflow embeds execute after DOM is ready).</p>
+      <pre><code>&lt;script&gt;
+/* paste code/filters_engine.js here */
+&lt;/script&gt;</code></pre>
+
+      <div class="callout warn">
+        <strong>Deploying changes:</strong> After editing <code>filters_engine.js</code> locally, open the JS Custom Code embed in Webflow Designer, replace the full content, then publish. Same process for CSS when it has content.
+      </div>
 
       <h2 id="structure">File Structure</h2>
       <pre><code>CMS/
 ├── code/
-│   ├── filters_engine.js   ← main filter logic
-│   └── filters_engine.css  ← (reserved, empty)
+│   ├── filters_engine.js   ← main filter logic (→ Webflow JS embed in equip2_wrap)
+│   └── filters_engine.css  ← filter UI overrides (→ Webflow CSS embed in equip2_wrap)
 ├── docs/
 │   └── index.html          ← this file
 └── products/
@@ -202,7 +253,7 @@
         <tbody>
           <tr><td>Form wrapper</td><td><code>n4-list-element</code></td><td><code>filters</code></td><td>—</td></tr>
           <tr><td>Level 1 radio</td><td><code>n4-list-field</code></td><td><code>category</code></td><td>Display name e.g. <code>CMC Lifts</code></td></tr>
-          <tr><td>Level 1 radio</td><td><code>n4-list-value</code></td><td>Category display name</td><td>e.g. <code>Carlton</code></td></tr>
+          <tr><td>Level 1 radio</td><td><code>n4-list-value</code></td><td>Category slug</td><td>e.g. <code>cmc-lifts</code>, <code>carlton</code></td></tr>
           <tr><td>Level 2+ checkbox</td><td><code>n4-list-field</code></td><td><code>filter</code></td><td>—</td></tr>
           <tr><td>Level 2+ checkbox</td><td><code>n4-list-value</code></td><td>Filter slug</td><td>e.g. <code>carlton-type-wood-chipper</code></td></tr>
         </tbody>
@@ -227,16 +278,33 @@
 
     <section id="data-attributes">
       <h2>data-* Attributes</h2>
-      <p>Used for structural cascade (show/hide groups, counts, labels).</p>
+      <p>Used for structural cascade (show/hide groups, counts, labels). These come from the Webflow DOM — the JS reads them as-is.</p>
+
+      <div class="callout">
+        <strong>Naming convention:</strong> <code>data-filters-*</code> (plural) on structural containers and display receivers (level wrappers, count spans, label receivers).
+        <code>data-filter-*</code> (singular) on individual items, list wraps, and group/fork identifiers.
+        Both patterns are set in Webflow Designer and used consistently throughout the engine.
+      </div>
+
+      <h3>Plural: <code>data-filters-*</code> — containers &amp; receivers</h3>
       <table>
         <thead><tr><th>Attribute</th><th>Used on</th><th>Example value</th><th>Purpose</th></tr></thead>
         <tbody>
-          <tr><td><code>data-filters-dropdown</code></td><td>Level wrappers</td><td><code>level-2</code> … <code>level-5</code></td><td>Show/hide entire level</td></tr>
-          <tr><td><code>data-filter-dropdown</code></td><td>Level 1 wrap / item</td><td><code>level-1-filters-wrap</code>, <code>level-1-filters-item</code></td><td>Count items, attach listeners</td></tr>
-          <tr><td><code>data-filters-dropdown</code></td><td>Count / label elements</td><td><code>level-2-filters-count</code>, <code>lvl-2-label-get</code></td><td>Receives count <code>(N)</code> or label text</td></tr>
-          <tr><td><code>data-filters-label</code></td><td>Hidden label source</td><td><code>lvl-2-label-post</code>, <code>lvl-3-label-post</code></td><td>Source text for label display name</td></tr>
-          <tr><td><code>data-filter-list-id</code></td><td>Level 2 / 3 filter group</td><td><code>cmc-lifts</code>, <code>carlton</code></td><td>Matched against <code>toSlug(Level 1 value)</code></td></tr>
-          <tr><td><code>data-filter-parent-category</code></td><td>Level 3 items &amp; labels</td><td><code>carlton-type-stump-grinder</code></td><td>Carlton fork — item visible only when this Level 2 value is checked. Empty = always show.</td></tr>
+          <tr><td><code>data-filters-dropdown</code></td><td>Level wrapper divs</td><td><code>level-2</code> … <code>level-5</code></td><td>Show/hide entire level container</td></tr>
+          <tr><td><code>data-filters-dropdown</code></td><td>Count receiver spans</td><td><code>level-2-filters-count</code>, <code>level-3-filters-count</code></td><td>Receives count text <code>(N)</code></td></tr>
+          <tr><td><code>data-filters-dropdown</code></td><td>Label receiver spans</td><td><code>lvl-2-label-get</code>, <code>lvl-3-label-get</code></td><td>Receives label display text</td></tr>
+          <tr><td><code>data-filters-label</code></td><td>Hidden label source elements</td><td><code>lvl-2-label-post</code>, <code>lvl-3-label-post</code></td><td>Source text read by the engine to populate label receivers</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Singular: <code>data-filter-*</code> — items, wraps &amp; identifiers</h3>
+      <table>
+        <thead><tr><th>Attribute</th><th>Used on</th><th>Example value</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>data-filter-dropdown</code></td><td>List wrap inside each level</td><td><code>level-1-filters-wrap</code>, <code>level-2-filters-wrap</code></td><td>Container for items — used for counting</td></tr>
+          <tr><td><code>data-filter-dropdown</code></td><td>Individual filter items</td><td><code>level-1-filters-item</code>, <code>level-2-filters-item</code>, <code>level-3-filters-item</code></td><td>Used for item count, muting, listener attachment</td></tr>
+          <tr><td><code>data-filter-list-id</code></td><td>Category group divs (Levels 2–5)</td><td><code>cmc-lifts</code>, <code>carlton</code></td><td>Matched against <code>toSlug(Level 1 value)</code> to show the correct group</td></tr>
+          <tr><td><code>data-filter-parent-category</code></td><td>Level 3/4/5 fork items &amp; labels</td><td><code>carlton-type-stump-grinder</code></td><td>Carlton fork — item visible only when this Level 2 value is checked. Empty string = always show.</td></tr>
         </tbody>
       </table>
     </section>
@@ -298,6 +366,7 @@
           <tr><td><code>toSlug(str)</code></td><td>Converts display name to slug — <code>"CMC Lifts" → "cmc-lifts"</code></td></tr>
           <tr><td><code>getActiveLevel2ParentCategory(slug)</code></td><td>Returns the checked Level 2 checkbox value for a given category slug — used by <code>showLevel3()</code> and <code>updateLevel2ForkMuting()</code></td></tr>
           <tr><td><code>getLevel3ForkParent(slug)</code></td><td>Returns fork parent key by reading visible Level 3 items' <code>data-filter-parent-category</code> — used by <code>showLevel4()</code></td></tr>
+          <tr><td><code>getLevel4ForkParent(slug)</code></td><td>Returns fork parent key by reading visible Level 4 items' <code>data-filter-parent-category</code> — parallel to <code>getLevel3ForkParent()</code>, used by <code>showLevel5()</code></td></tr>
           <tr><td><code>updateLevel1Count()</code></td><td>Counts Level 1 radio items, renders <code>(N)</code> in count element</td></tr>
           <tr><td><code>initLevelVisibility()</code></td><td>Hides level-2 through level-5 on page load (skipped in Webflow Designer)</td></tr>
           <tr><td><code>resetLevel(n)</code></td><td>Hides + unchecks a single level; resets its count and label. Used for cascade resets.</td></tr>
@@ -311,13 +380,12 @@
           <tr><td><code>hideLevel3()</code></td><td>Hides + resets Level 3 — defined but not currently called (deferred)</td></tr>
           <tr><td><code>updateLevel3Availability()</code></td><td>Mutes Level 3 items based on currently VISIBLE products (dynamic). Skips fork-hidden items.</td></tr>
           <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners. On change: resets levels 4–5, applies filters, shows Level 4 if any L3 checked, updates availability.</td></tr>
-          <tr><td><code>showLevel4(categorySlug)</code></td><td>Shows Level 4 wrapper only if a matching <code>data-filter-list-id</code> group exists (Lift Carriers returns early — no Level 4). Fork keyed via <code>getLevel3ForkParent()</code>.</td></tr>
+          <tr><td><code>showLevel4(categorySlug)</code></td><td>Shows Level 4 wrapper only if the matching group exists AND contains items (<code>hasItems</code> guard — Lift Carriers has an empty group in DOM, stays hidden). Fork keyed via <code>getLevel3ForkParent()</code>.</td></tr>
           <tr><td><code>updateLevel4Availability()</code></td><td>Mutes Level 4 items based on currently VISIBLE products. Skips fork-hidden items.</td></tr>
           <tr><td><code>initLevel4()</code></td><td>Attaches <code>change</code> listeners. On change: resets level 5, applies filters, shows Level 5 if any L4 checked.</td></tr>
           <tr><td><code>showLevel5(categorySlug)</code></td><td>Shows Level 5 only if activeGroup has items (Carlton/Trailers/Lift Carriers have empty Level 5 groups). Non-fork for CMC Lifts. Fork-ready via <code>getLevel4ForkParent()</code>.</td></tr>
           <tr><td><code>updateLevel5Availability()</code></td><td>Mutes Level 5 items based on currently VISIBLE products. Skips fork-hidden items.</td></tr>
-          <tr><td><code>initLevel5()</code></td><td>Attaches <code>change</code> listeners to Level 5 checkboxes; calls applyFilters + updateLevel5Availability</td></tr>
-          <tr><td><code>getLevel4ForkParent(slug)</code></td><td>Returns fork parent key from visible Level 4 items — used by <code>showLevel5()</code></td></tr>
+          <tr><td><code>initLevel5()</code></td><td>Attaches <code>change</code> listeners to Level 5 checkboxes; calls <code>applyFilters()</code> + <code>updateLevel5Availability()</code></td></tr>
         </tbody>
       </table>
 
@@ -336,10 +404,11 @@ updateLevel2ForkMuting(slug) // 2. override: mute non-selected fork items on top
       <h2>Matching Logic</h2>
 
       <h3>Category (Level 1)</h3>
-      <pre><code>// Radio n4-list-value vs product category &lt;p&gt; textContent
-const selectedCategory = radio.getAttribute('n4-list-value'); // e.g. "Carlton"
-const productCategory  = categoryEl.textContent.trim();       // e.g. "Carlton"
-const categoryMatch = !selectedCategory || productCategory === selectedCategory;</code></pre>
+      <pre><code>// Radio n4-list-value is a slug; product category &lt;p&gt; textContent is a display name.
+// toSlug() bridges the two.
+const selectedCategory = radio.getAttribute('n4-list-value'); // e.g. "cmc-lifts"
+const productCategory  = categoryEl.textContent.trim();       // e.g. "CMC Lifts"
+const categoryMatch = !selectedCategory || toSlug(productCategory) === selectedCategory;</code></pre>
 
       <h3>Filters (Level 2+) — AND between levels, OR within level</h3>
       <pre><code>// Each level is collected separately:
@@ -425,6 +494,41 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v2.0</div>
+        <ul>
+          <li><strong>Tag/chip system:</strong> selected filters from L1–L5 appear as dismissible tag buttons in <code>[data-filters-tags="slot"]</code></li>
+          <li><strong><code>addTag(inputEl, levelNum)</code>:</strong> clones skeleton button, writes <code>data-filter-tag-label-post</code> as label, sets <code>aria-label="Remove filter: [name]"</code>, attaches click-to-remove handler</li>
+          <li><strong><code>clearTagsForLevel(n)</code>:</strong> removes all slot tags for a given level; called by <code>resetLevel()</code> so cascade resets also clear downstream tags automatically</li>
+          <li><strong><code>removeTagForValue(value, n)</code>:</strong> removes a specific tag by <code>n4-list-value</code> when user manually unchecks a checkbox</li>
+          <li><strong>Tag click cascade:</strong> L1 tag unchecks radio + calls <code>resetLevels()</code>; L2–L5 tag unchecks input + dispatches <code>change</code> event so existing cascade listeners handle downstream reset</li>
+          <li><strong>ARIA:</strong> <code>aria-label</code> added to all radios, checkboxes (L1–L5 init listeners), and tag buttons</li>
+          <li><strong><code>filters_engine.css</code>:</strong> first content — hides skeleton (<code>display:none !important</code>), hides empty slot (<code>:empty</code>)</li>
+          <li><strong>DOM note:</strong> skeleton has typo <code>dtaa-filters-tags="tag-button"</code> — JS selects <code>button</code> by parent selector so it works; fix the typo in Webflow when convenient</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.9</div>
+        <ul>
+          <li><strong>Level 1 radio <code>n4-list-value</code> changed to slug</strong> — was display name (e.g. <code>Carlton</code>), now slug (e.g. <code>carlton</code>), consistent with all other levels</li>
+          <li><strong><code>initLevel1()</code>:</strong> removed <code>toSlug()</code> wrapper — value is already a slug</li>
+          <li><strong><code>applyFilters()</code>:</strong> category match now uses <code>toSlug(productCategory) === selectedCategory</code> to bridge product card display name vs radio slug</li>
+          <li><strong><code>updateLevel2Availability()</code>:</strong> same <code>toSlug()</code> fix for category comparison</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.8</div>
+        <ul>
+          <li><strong>Docs: Local vs Webflow split</strong> — Overview now separates local repo files from Webflow responsibilities</li>
+          <li><strong>Docs: equip2_wrap embeds section</strong> — Documents both Custom Code embeds (CSS + JS) inside the <code>equip2_wrap</code> section with deployment instructions</li>
+          <li><strong>Docs: data-* naming convention</strong> — Attributes table split into plural (<code>data-filters-*</code> — containers/receivers) vs singular (<code>data-filter-*</code> — items/wraps/identifiers) with explanation callout</li>
+          <li><strong>Docs: <code>getLevel4ForkParent()</code></strong> moved to correct position in functions table (next to <code>getLevel3ForkParent()</code>)</li>
+          <li><strong>Docs: <code>showLevel4()</code></strong> description updated to mention <code>hasItems</code> guard</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-25 — v1.7</div>
