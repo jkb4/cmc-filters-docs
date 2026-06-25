@@ -117,6 +117,40 @@ function addTag(inputEl, levelNum) {
   slot.appendChild(tag);
 }
 
+// ─── Clear-all button: show when any filter active, hide when none ────────────
+function updateClearAllButton() {
+  var btn = document.querySelector('[data-filters-control="clear-all-filters"]');
+  if (!btn) return;
+  var hasL1 = !!document.querySelector('[n4-list-field="category"][type="radio"]:checked');
+  var hasCheckbox = !!document.querySelector(
+    '[data-filters-dropdown="level-2"] input[type="checkbox"]:checked,' +
+    '[data-filters-dropdown="level-3"] input[type="checkbox"]:checked,' +
+    '[data-filters-dropdown="level-4"] input[type="checkbox"]:checked,' +
+    '[data-filters-dropdown="level-5"] input[type="checkbox"]:checked'
+  );
+  btn.style.display = (hasL1 || hasCheckbox) ? '' : 'none';
+}
+
+// ─── Clear-all button: click handler ─────────────────────────────────────────
+(function initClearAllButton() {
+  var btn = document.querySelector('[data-filters-control="clear-all-filters"]');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    // Deselect L1 radio
+    document.querySelectorAll('[n4-list-field="category"][type="radio"]').forEach(function (radio) {
+      radio.checked = false;
+      radio.classList.remove('w--redirected-checked');
+      var wrap = radio.closest('.w-radio');
+      if (wrap) wrap.classList.remove('is-list-active');
+      var radioBtn = radio.parentElement && radio.parentElement.querySelector('.w-radio-input');
+      if (radioBtn) radioBtn.classList.remove('w--redirected-checked');
+    });
+    clearTagsForLevel(1);
+    resetLevels(); // clears L2-5 + their tags
+    applyFilters(); // also calls updateClearAllButton() -> hides this button
+  });
+})();
+
 // ─── Level 1: count items ─────────────────────────────────────────────────────
 (function updateLevel1Count() {
   const wrap = document.querySelector('[data-filter-dropdown="level-1-filters-wrap"]');
@@ -219,6 +253,8 @@ function applyFilters() {
 
     item.style.display = (categoryMatch && filterMatch) ? '' : 'none';
   });
+
+  updateClearAllButton();
 }
 
 // ─── Level 1 to Level 2 cascade ──────────────────────────────────────────────

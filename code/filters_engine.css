@@ -5,13 +5,32 @@
       display: none;
   }
 
+  /* Clear-all button: hidden until at least one filter is active */
+  [data-filters-control="clear-all-filters"] {
+    display: none;
+    transition: filter var(--transition-duration-1) var(--transition-ease-in-out);
+  }
+
+  [data-filters-control="clear-all-filters"]:hover {
+    filter: brightness(0.8);
+  }
+
   /* Filter option hover — animate background */
   .equip2_dropdown_radio_wrap {
-    transition: background-color var(--transition-duration-1) var(--transition-ease-in-out);
+      transition: background-color var(--transition-duration-1) var(--transition-ease-in-out);
   }
 
   .equip2_dropdown_radio_wrap:hover {
-    background-color: var(--_theme---background--bg-2);
+      background-color: var(--_theme---background--bg-2);
+  }
+
+  /* Tag/chip hover — same as radio wrap */
+  .equip2_selected_tag_btn {
+      transition: background-color var(--transition-duration-1) var(--transition-ease-in-out);
+  }
+
+  .equip2_selected_tag_btn:hover {
+      background-color: var(--_theme---text--text-muted);
   }
 
   /* ─── Radio + Checkbox button visual ────────────────────────────────────────
@@ -21,47 +40,47 @@
      ─────────────────────────────────────────────────────────────────────────── */
 
   .equip2_dropdown_radio_btn {
-    /* Size & shape */
-    width: 1.25rem !important;
-    height: 1.25rem !important;
-    min-width: 1.25rem;
-    aspect-ratio: 1 / 1;
-    border-radius: 0.125rem !important;
-    flex-shrink: 0;
+      /* Size & shape */
+      width: 1.25rem !important;
+      height: 1.25rem !important;
+      min-width: 1.25rem;
+      aspect-ratio: 1 / 1;
+      border-radius: 0.125rem !important;
+      flex-shrink: 0;
 
-    /* Colors */
-    background-color: var(--_theme---background--bg-1) !important;
-    border: var(--border-width--main) solid var(--_theme---border--border-1) !important;
+      /* Colors */
+      background-color: var(--_theme---background--bg-1) !important;
+      border: var(--border-width--main) solid var(--_theme---border--border-1) !important;
 
-    /* Reset browser + Webflow defaults */
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: none !important;
-    box-shadow: none;
-    outline: none !important;
-    cursor: pointer;
+      /* Reset browser + Webflow defaults */
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: none !important;
+      box-shadow: none;
+      outline: none !important;
+      cursor: pointer;
 
-    /* Transition */
-    transition:
-      background-color var(--transition-duration-1) var(--transition-ease-in-out),
-      border-color var(--transition-duration-1) var(--transition-ease-in-out);
+      /* Transition */
+      transition:
+          background-color var(--transition-duration-1) var(--transition-ease-in-out),
+          border-color var(--transition-duration-1) var(--transition-ease-in-out);
   }
 
   /* Checked state: radio uses .w--redirected-checked, checkbox uses :checked */
   .equip2_dropdown_radio_btn.w--redirected-checked,
   .equip2_dropdown_radio_btn:checked {
-    background-color: var(--_theme---background--bg-dark) !important;
-    border-color: var(--_theme---background--bg-dark) !important;
-    /* Checkmark — stroke="white", update if needed */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: center !important;
-    background-size: 65% !important;
+      background-color: var(--_theme---background--bg-dark) !important;
+      border-color: var(--_theme---background--bg-dark) !important;
+      /* Checkmark — stroke="white", update if needed */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10'%3E%3Cpath d='M1 5l3.5 3.5L11 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") !important;
+      background-repeat: no-repeat !important;
+      background-position: center !important;
+      background-size: 65% !important;
   }
 
   /* Remove Webflow's default round dot on radio */
   .equip2_dropdown_radio_btn::before {
-    display: none !important;
+      display: none !important;
   }
 
   /* Kill browser/Webflow focus outline — direct focus, :focus-within, all click events */
@@ -70,22 +89,22 @@
   .equip2_dropdown_radio_btn:focus-within,
   .equip2_dropdown_radio_wrap:focus-within .equip2_dropdown_radio_btn,
   .equip2_dropdown_radio_wrap:active .equip2_dropdown_radio_btn {
-    outline: 2px solid transparent !important;
-    box-shadow: none !important;
+      outline: 2px solid transparent !important;
+      box-shadow: none !important;
   }
 
   /* Restore focus ring for keyboard navigation only (Tab key) */
   .equip2_dropdown_radio_wrap:has(input:focus-visible) .equip2_dropdown_radio_btn {
-    outline: var(--border-width--main) solid var(--_theme---border--border-1) !important;
-    outline-offset: 0.125rem;
+      outline: var(--border-width--main) solid var(--_theme---border--border-1) !important;
+      outline-offset: 0.125rem;
   }
 
   /* Remove browser UA focus outline on hidden radio input */
   .equip2_dropdown_radio_wrap input[type="radio"],
   .equip2_dropdown_radio_wrap input[type="radio"]:focus,
   .equip2_dropdown_radio_wrap input[type="radio"]:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
+      outline: none !important;
+      box-shadow: none !important;
   }
 
   /* Webflow Designer and Editor preview */
