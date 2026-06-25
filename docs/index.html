@@ -168,12 +168,13 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v1.5</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v1.6</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
-        multi-level filter hierarchy. Supports up to 4 visible levels with cascading show/hide,
-        availability muting, and Carlton's fork logic (conditional Level 3 based on Level 2 choice).
+        multi-level filter hierarchy. Supports up to 5 visible levels with cascading show/hide,
+        availability muting, and Carlton's fork logic (conditional Level 3/4 based on Level 2 choice).
+        Each level acts as a gate — AND between levels, OR within a level.
         All logic lives in <code>code/filters_engine.js</code>.
       </p>
 
@@ -230,7 +231,7 @@
       <table>
         <thead><tr><th>Attribute</th><th>Used on</th><th>Example value</th><th>Purpose</th></tr></thead>
         <tbody>
-          <tr><td><code>data-filters-dropdown</code></td><td>Level wrappers</td><td><code>level-2</code>, <code>level-3</code>, <code>level-4</code></td><td>Show/hide entire level</td></tr>
+          <tr><td><code>data-filters-dropdown</code></td><td>Level wrappers</td><td><code>level-2</code> … <code>level-5</code></td><td>Show/hide entire level</td></tr>
           <tr><td><code>data-filter-dropdown</code></td><td>Level 1 wrap / item</td><td><code>level-1-filters-wrap</code>, <code>level-1-filters-item</code></td><td>Count items, attach listeners</td></tr>
           <tr><td><code>data-filters-dropdown</code></td><td>Count / label elements</td><td><code>level-2-filters-count</code>, <code>lvl-2-label-get</code></td><td>Receives count <code>(N)</code> or label text</td></tr>
           <tr><td><code>data-filters-label</code></td><td>Hidden label source</td><td><code>lvl-2-label-post</code>, <code>lvl-3-label-post</code></td><td>Source text for label display name</td></tr>
@@ -295,20 +296,22 @@
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
           <tr><td><code>toSlug(str)</code></td><td>Converts display name to slug — <code>"CMC Lifts" → "cmc-lifts"</code></td></tr>
-          <tr><td><code>getActiveLevel2ParentCategory(slug)</code></td><td>Returns the checked Level 2 checkbox value for a given category slug — used for fork detection</td></tr>
+          <tr><td><code>getActiveLevel2ParentCategory(slug)</code></td><td>Returns the checked Level 2 checkbox value for a given category slug — used by <code>showLevel3()</code> and <code>updateLevel2ForkMuting()</code></td></tr>
+          <tr><td><code>getLevel3ForkParent(slug)</code></td><td>Returns fork parent key by reading visible Level 3 items' <code>data-filter-parent-category</code> — used by <code>showLevel4()</code></td></tr>
           <tr><td><code>updateLevel1Count()</code></td><td>Counts Level 1 radio items, renders <code>(N)</code> in count element</td></tr>
-          <tr><td><code>initLevelVisibility()</code></td><td>Hides level-2/3/4 on page load (skipped in Webflow Designer)</td></tr>
-          <tr><td><code>resetLevels()</code></td><td>Hides + unchecks all Level 2/3/4 inputs; removes Webflow visual classes; resets counts/labels</td></tr>
-          <tr><td><code>applyFilters()</code></td><td>Main filter function — reads checked category + filters, shows/hides product items (OR logic)</td></tr>
+          <tr><td><code>initLevelVisibility()</code></td><td>Hides level-2 through level-5 on page load (skipped in Webflow Designer)</td></tr>
+          <tr><td><code>resetLevel(n)</code></td><td>Hides + unchecks a single level; resets its count and label. Used for cascade resets.</td></tr>
+          <tr><td><code>resetLevels()</code></td><td>Calls <code>resetLevel()</code> for levels 2–5. Used on Level 1 change.</td></tr>
+          <tr><td><code>applyFilters()</code></td><td>Main filter function. <strong>AND between levels, OR within level</strong> — each level with checked items is a gate; product must pass all active gates.</td></tr>
           <tr><td><code>showLevel2(categorySlug)</code></td><td>Shows Level 2 wrapper, reveals matching <code>data-filter-list-id</code> group, updates count and label</td></tr>
           <tr><td><code>updateLevel2Availability()</code></td><td>Mutes Level 2 items (opacity 0.5, pointer-events none) if no products in selected category have that filter</td></tr>
           <tr><td><code>updateLevel2ForkMuting(categorySlug)</code></td><td>Carlton only — when a fork-parent Level 2 value is checked, mutes the other fork choices. Runs after <code>updateLevel2Availability()</code> to override it.</td></tr>
-          <tr><td><code>initLevel2()</code></td><td>Attaches <code>change</code> listeners to Level 2 checkboxes; calls applyFilters, showLevel3, updateLevel3Availability, updateLevel2Availability, updateLevel2ForkMuting</td></tr>
+          <tr><td><code>initLevel2()</code></td><td>Attaches <code>change</code> listeners. On change: resets levels 3–5, applies filters, shows Level 3 if any L2 checked, re-runs availability + fork muting.</td></tr>
           <tr><td><code>showLevel3(categorySlug)</code></td><td>Shows Level 3 wrapper; detects fork automatically via non-empty <code>data-filter-parent-category</code> on items; filters/labels by active fork parent</td></tr>
           <tr><td><code>hideLevel3()</code></td><td>Hides + resets Level 3 — defined but not currently called (deferred)</td></tr>
           <tr><td><code>updateLevel3Availability()</code></td><td>Mutes Level 3 items based on currently VISIBLE products (dynamic). Skips fork-hidden items.</td></tr>
-          <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners to Level 3 checkboxes; calls applyFilters, updateLevel3Availability; triggers showLevel4 + updateLevel4Availability when any Level 3 is checked</td></tr>
-          <tr><td><code>showLevel4(categorySlug)</code></td><td>Shows Level 4 wrapper; same fork logic as showLevel3 — fork keyed on Level 2 Carlton Type choice</td></tr>
+          <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners. On change: resets levels 4–5, applies filters, shows Level 4 if any L3 checked, updates availability.</td></tr>
+          <tr><td><code>showLevel4(categorySlug)</code></td><td>Shows Level 4 wrapper only if a matching <code>data-filter-list-id</code> group exists (Lift Carriers returns early — no Level 4). Fork keyed via <code>getLevel3ForkParent()</code>.</td></tr>
           <tr><td><code>updateLevel4Availability()</code></td><td>Mutes Level 4 items based on currently VISIBLE products. Skips fork-hidden items.</td></tr>
           <tr><td><code>initLevel4()</code></td><td>Attaches <code>change</code> listeners to Level 4 checkboxes; calls applyFilters + updateLevel4Availability</td></tr>
         </tbody>
@@ -334,16 +337,27 @@ const selectedCategory = radio.getAttribute('n4-list-value'); // e.g. "Carlton"
 const productCategory  = categoryEl.textContent.trim();       // e.g. "Carlton"
 const categoryMatch = !selectedCategory || productCategory === selectedCategory;</code></pre>
 
-      <h3>Filters (Level 2+) — OR logic</h3>
-      <pre><code>// Checkbox n4-list-value (slug) vs product filter &lt;p&gt; n4-list-value (slug)
-const checkedFilters = [...checkboxes].map(cb => cb.getAttribute('n4-list-value'));
-const productFilters = [...filterPs].map(p  => p.getAttribute('n4-list-value'));
-const filterMatch = checkedFilters.some(val => productFilters.includes(val));</code></pre>
+      <h3>Filters (Level 2+) — AND between levels, OR within level</h3>
+      <pre><code>// Each level is collected separately:
+const level2Filters = getCheckedLevel(2); // e.g. ["carlton-type-wood-chipper"]
+const level3Filters = getCheckedLevel(3); // e.g. ["carlton-wood-chipper-cutting-system-disc"]
+const level4Filters = getCheckedLevel(4); // e.g. ["carlton-wood-chipper-capacity-12-inch"]
 
-      <div class="callout warn">
-        <strong>OR logic:</strong> A product appears if it matches <em>any</em> of the checked filters —
-        not all of them. Filters from Level 2 and Level 3 are pooled together.
+// Product must pass EVERY active level (AND), matching ANY value within it (OR):
+const filterMatch = [level2, level3, level4, level5].every(lvl =>
+  lvl.length === 0 || lvl.some(val => productFilters.includes(val))
+);</code></pre>
+
+      <div class="callout">
+        <strong>Gate logic:</strong> Selecting Working Height 40ft <em>and</em> Application = Contractor Rental
+        shows only products that have <em>both</em> filters — not one or the other.
+        Multiple values within the same level still use OR (e.g. checking 40ft + 50ft shows either).
       </div>
+
+      <h3>Cascade reset rules</h3>
+      <pre><code>// Level 1 change → resetLevels() → hides + unchecks levels 2–5
+// Level 2 change → resetLevel(3), resetLevel(4), resetLevel(5) → then show Level 3
+// Level 3 change → resetLevel(4), resetLevel(5) → then show Level 4</code></pre>
 
       <h3>Level 1 → Level 2 cascade</h3>
       <pre><code>// Radio display value → slug → match data-filter-list-id on Level 2 groups
@@ -352,8 +366,8 @@ const categorySlug = toSlug(radio.getAttribute('n4-list-value')); // "cmc-lifts"
 
       <h3>Level 2 → Level 3 cascade</h3>
       <pre><code>// Level 3 shows when at least one Level 2 checkbox is checked
-// showLevel3(categorySlug) re-runs each time a Level 2 checkbox changes
-// Level 3 does NOT hide when Level 2 is unchecked (deferred)</code></pre>
+// Level 3 (and 4, 5) are reset first on every Level 2 change
+// showLevel3(categorySlug) re-runs with fresh state</code></pre>
     </section>
 
     <section id="fork">
@@ -409,10 +423,22 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
       <h2>Changelog</h2>
 
       <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.6</div>
+        <ul>
+          <li><strong>Cascade reset:</strong> Level 2 change now resets levels 3–5; Level 3 change resets levels 4–5 — prevents stale selections from earlier levels leaking into later ones</li>
+          <li><strong>Gate filter logic:</strong> <code>applyFilters()</code> changed from global OR to AND-between-levels / OR-within-level — each level is now a gate (e.g. L2=Contractor Rental AND L3=40ft)</li>
+          <li><strong>Lift Carriers Level 4 fix:</strong> <code>showLevel4()</code> now checks for a matching group before setting <code>display = ""</code> — Lift Carriers (no Level 4) no longer unhides the Level 4 container</li>
+          <li><strong><code>resetLevel(n)</code> helper:</strong> generalized single-level reset; <code>resetLevels()</code> now calls it for levels 2–5</li>
+          <li><strong><code>initLevelVisibility()</code></strong> updated to also hide <code>level-5</code> on load</li>
+          <li><strong><code>getLevel3ForkParent()</code></strong> added — reads fork key from visible Level 3 items for more reliable Level 4 fork detection</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
         <div class="date">2026-06-25 — v1.5</div>
         <ul>
           <li>Level 4 cascade implemented: <code>showLevel4()</code>, <code>updateLevel4Availability()</code>, <code>initLevel4()</code></li>
-          <li>Level 4 fork logic for Carlton: Horsepower (Stump Grinder) / Capacity (Wood Chipper) — same <code>getActiveLevel2ParentCategory()</code> key as Level 3</li>
+          <li>Level 4 fork logic for Carlton: Horsepower (Stump Grinder) / Capacity (Wood Chipper)</li>
           <li><code>initLevel3()</code> updated to trigger <code>showLevel4</code> + <code>updateLevel4Availability</code> when any Level 3 checkbox is checked</li>
           <li><code>resetLevels()</code> updated to reset Level 4 count + label</li>
           <li>Lift Carriers Level 4 group is empty — hidden via Webflow conditional visibility</li>

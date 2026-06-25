@@ -88,37 +88,51 @@ function resetLevels() {
 }
 
 // ─── Apply filters to product list ───────────────────────────────────────────
+// Logic: AND between levels (each checked level is a gate),
+//        OR within a level (any match within the same level passes).
 function applyFilters() {
-  // Read selected category from Level 1 radio
+  // Level 1: radio → category
   const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
   const selectedCategory = categoryInput ? categoryInput.getAttribute('n4-list-value') : null;
 
-  // Read all checked Level 2+ filter values
-  const checkedFilters = [];
-  document.querySelectorAll('[n4-list-field="filter"][type="checkbox"]:checked').forEach(function (cb) {
-    checkedFilters.push(cb.getAttribute('n4-list-value'));
-  });
+  // Collect checked filter values per level
+  function getCheckedLevel(levelNum) {
+    const container = document.querySelector('[data-filters-dropdown="level-' + levelNum + '"]');
+    if (!container) return [];
+    const vals = [];
+    container.querySelectorAll('input[type="checkbox"]:checked').forEach(function (cb) {
+      vals.push(cb.getAttribute('n4-list-value'));
+    });
+    return vals;
+  }
+
+  const levelFilters = [
+    getCheckedLevel(2),
+    getCheckedLevel(3),
+    getCheckedLevel(4),
+    getCheckedLevel(5),
+  ];
 
   // Show/hide each product item
   document.querySelectorAll('[n4-filters-item]').forEach(function (item) {
     const categoryEl = item.querySelector('[n4-list-field="category"]');
     const productCategory = categoryEl ? categoryEl.textContent.trim() : '';
 
-    // Category match: compare radio n4-list-value to product <p> text content
+    // Level 1 gate: category must match
     const categoryMatch = !selectedCategory || productCategory === selectedCategory;
 
-    // Filter match: OR logic — product must match at least one checked filter
-    let filterMatch = true;
-    if (checkedFilters.length > 0) {
-      const productFilterEls = item.querySelectorAll('[n4-list-field="filter"]');
-      const productFilters = [];
-      productFilterEls.forEach(function (p) {
-        productFilters.push(p.getAttribute('n4-list-value'));
-      });
-      filterMatch = checkedFilters.some(function (val) {
-        return productFilters.indexOf(val) !== -1;
-      });
-    }
+    // Collect all product filter slugs once
+    const productFilters = [];
+    item.querySelectorAll('[n4-list-field="filter"]').forEach(function (p) {
+      productFilters.push(p.getAttribute('n4-list-value'));
+    });
+
+    // Each level is a gate: if anything is checked at that level,
+    // the product must match at least one value from that level.
+    const filterMatch = levelFilters.every(function (lvl) {
+      if (lvl.length === 0) return true; // nothing checked → gate open
+      return lvl.some(function (val) { return productFilters.indexOf(val) !== -1; });
+    });
 
     item.style.display = (categoryMatch && filterMatch) ? '' : 'none';
   });
