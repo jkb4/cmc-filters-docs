@@ -7,6 +7,7 @@ function toSlug(str) {
 }
 
 // ─── Helper: get checked Level 2 value for a category (fork parent) ──────────
+// Used by: showLevel3(), updateLevel2ForkMuting()
 function getActiveLevel2ParentCategory(categorySlug) {
   const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
   if (!level2) return null;
@@ -14,6 +15,24 @@ function getActiveLevel2ParentCategory(categorySlug) {
   if (!activeGroup) return null;
   const checked = activeGroup.querySelector('input[type="checkbox"]:checked');
   return checked ? checked.getAttribute('n4-list-value') : null;
+}
+
+// ─── Helper: get fork parent from visible Level 3 items ───────────────────────
+// Used by: showLevel4() — more reliable than reading Level 2 state at this point
+function getLevel3ForkParent(categorySlug) {
+  const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
+  if (!level3) return null;
+  const group = level3.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  if (!group) return null;
+  var found = null;
+  group.querySelectorAll('[data-filter-dropdown="level-3-filters-item"]').forEach(function (item) {
+    if (found !== null) return;
+    if (item.style.display !== 'none') {
+      var pc = item.getAttribute('data-filter-parent-category');
+      if (pc && pc !== '') found = pc;
+    }
+  });
+  return found;
 }
 
 // ─── Level 1: count items ─────────────────────────────────────────────────────
@@ -25,55 +44,47 @@ function getActiveLevel2ParentCategory(categorySlug) {
   countEl.textContent = '(' + count + ')';
 })();
 
-// ─── Hide levels 2 / 3 / 4 on load ───────────────────────────────────────────
+// ─── Hide levels 2–5 on load ─────────────────────────────────────────────────
 (function initLevelVisibility() {
   if (IS_DESIGNER) return;
-  ['level-2', 'level-3', 'level-4'].forEach(function (level) {
+  ['level-2', 'level-3', 'level-4', 'level-5'].forEach(function (level) {
     const el = document.querySelector('[data-filters-dropdown="' + level + '"]');
     if (el) el.style.display = 'none';
   });
 })();
 
-// ─── Reset levels 2 / 3 / 4 ──────────────────────────────────────────────────
-function resetLevels() {
-  ['level-2', 'level-3', 'level-4'].forEach(function (level) {
-    const el = document.querySelector('[data-filters-dropdown="' + level + '"]');
-    if (!el) return;
-    el.style.display = 'none';
+// ─── Reset a single level (uncheck, hide, clear count/label) ─────────────────
+function resetLevel(levelNum) {
+  const levelKey = 'level-' + levelNum;
+  const el = document.querySelector('[data-filters-dropdown="' + levelKey + '"]');
+  if (!el) return;
+  el.style.display = 'none';
 
-    // Uncheck checkboxes + remove Webflow visual class
-    el.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
-      input.checked = false;
-      input.classList.remove('w--redirected-checked');
-    });
-
-    // Uncheck radios (future levels) + remove Webflow visual classes
-    el.querySelectorAll('input[type="radio"]').forEach(function (input) {
-      input.checked = false;
-      const label = input.closest('.w-radio');
-      if (label) label.classList.remove('is-list-active');
-      const btn = input.parentElement && input.parentElement.querySelector('.w-radio-input');
-      if (btn) btn.classList.remove('w--redirected-checked');
-    });
+  el.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+    input.checked = false;
+    input.classList.remove('w--redirected-checked');
   });
 
-  // Reset Level 2 count and label
-  const countEl = document.querySelector('[data-filters-dropdown="level-2-filters-count"]');
+  el.querySelectorAll('input[type="radio"]').forEach(function (input) {
+    input.checked = false;
+    const label = input.closest('.w-radio');
+    if (label) label.classList.remove('is-list-active');
+    const btn = input.parentElement && input.parentElement.querySelector('.w-radio-input');
+    if (btn) btn.classList.remove('w--redirected-checked');
+  });
+
+  const countEl = document.querySelector('[data-filters-dropdown="' + levelKey + '-filters-count"]');
   if (countEl) countEl.textContent = '(0)';
-  const labelEl = document.querySelector('[data-filters-dropdown="lvl-2-label-get"]');
-  if (labelEl) labelEl.textContent = 'Lvl 2 Filter';
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-' + levelNum + '-label-get"]');
+  if (labelEl) labelEl.textContent = 'Lvl ' + levelNum + ' Filter';
+}
 
-  // Reset Level 3 count and label
-  const count3El = document.querySelector('[data-filters-dropdown="level-3-filters-count"]');
-  if (count3El) count3El.textContent = '(0)';
-  const label3El = document.querySelector('[data-filters-dropdown="lvl-3-label-get"]');
-  if (label3El) label3El.textContent = 'Lvl 3 Filter';
-
-  // Reset Level 4 count and label
-  const count4El = document.querySelector('[data-filters-dropdown="level-4-filters-count"]');
-  if (count4El) count4El.textContent = '(0)';
-  const label4El = document.querySelector('[data-filters-dropdown="lvl-4-label-get"]');
-  if (label4El) label4El.textContent = 'Lvl 4 Filter';
+// ─── Reset levels 2–4 (called on Level 1 change) ─────────────────────────────
+function resetLevels() {
+  resetLevel(2);
+  resetLevel(3);
+  resetLevel(4);
+  resetLevel(5);
 }
 
 // ─── Apply filters to product list ───────────────────────────────────────────
@@ -229,6 +240,11 @@ function updateLevel2ForkMuting(categorySlug) {
 
   level2.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
     cb.addEventListener('change', function () {
+      // Cascade reset: Level 2 change clears all downstream levels
+      resetLevel(3);
+      resetLevel(4);
+      resetLevel(5);
+
       applyFilters();
 
       const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
@@ -362,6 +378,10 @@ function updateLevel3Availability() {
 
   level3.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
     cb.addEventListener('change', function () {
+      // Cascade reset: Level 3 change clears all downstream levels
+      resetLevel(4);
+      resetLevel(5);
+
       applyFilters();
       updateLevel3Availability();
 
@@ -382,6 +402,12 @@ function updateLevel3Availability() {
 function showLevel4(categorySlug) {
   const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
   if (!level4) return;
+
+  // Check for a matching group BEFORE showing the container.
+  // If none exists (e.g. Lift Carriers has no Level 4), leave the container hidden.
+  const activeGroup = level4.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  if (!activeGroup) return;
+
   level4.style.display = '';
 
   level4.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
@@ -389,11 +415,8 @@ function showLevel4(categorySlug) {
     group.style.display = match ? '' : 'none';
   });
 
-  const activeGroup = level4.querySelector('[data-filter-list-id="' + categorySlug + '"]');
   const countEl = document.querySelector('[data-filters-dropdown="level-4-filters-count"]');
   const labelEl = document.querySelector('[data-filters-dropdown="lvl-4-label-get"]');
-
-  if (!activeGroup) return;
 
   // Detect fork: any Level 4 items with non-empty data-filter-parent-category?
   const isFork = !!activeGroup.querySelector(
@@ -401,8 +424,8 @@ function showLevel4(categorySlug) {
   );
 
   if (isFork) {
-    // Fork parent key = same Level 2 choice (e.g. carlton-type-stump-grinder)
-    const selectedParent = getActiveLevel2ParentCategory(categorySlug);
+    // Fork parent key — read from visible Level 3 items (more reliable than Level 2 checked state)
+    const selectedParent = getLevel3ForkParent(categorySlug);
 
     activeGroup.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').forEach(function (item) {
       const parentCat = item.getAttribute('data-filter-parent-category');
