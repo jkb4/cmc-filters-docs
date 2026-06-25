@@ -1,7 +1,7 @@
 // ─── Config ───────────────────────────────────────────────────────────────────
 const IS_DESIGNER = document.documentElement.hasAttribute('wf-designer');
 
-// ─── Helper: display name → slug ─────────────────────────────────────────────
+// ─── Helper: display name to slug ────────────────────────────────────────────
 function toSlug(str) {
   return str.toLowerCase().replace(/\s+/g, '-');
 }
@@ -79,7 +79,7 @@ function resetLevel(levelNum) {
   if (labelEl) labelEl.textContent = 'Lvl ' + levelNum + ' Filter';
 }
 
-// ─── Reset levels 2–4 (called on Level 1 change) ─────────────────────────────
+// ─── Reset levels 2-5 (called on Level 1 change) ────────────────────────────
 function resetLevels() {
   resetLevel(2);
   resetLevel(3);
@@ -91,7 +91,7 @@ function resetLevels() {
 // Logic: AND between levels (each checked level is a gate),
 //        OR within a level (any match within the same level passes).
 function applyFilters() {
-  // Level 1: radio → category
+  // Level 1: radio reads selected category
   const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
   const selectedCategory = categoryInput ? categoryInput.getAttribute('n4-list-value') : null;
 
@@ -130,7 +130,7 @@ function applyFilters() {
     // Each level is a gate: if anything is checked at that level,
     // the product must match at least one value from that level.
     const filterMatch = levelFilters.every(function (lvl) {
-      if (lvl.length === 0) return true; // nothing checked → gate open
+      if (lvl.length === 0) return true; // nothing checked -- gate open
       return lvl.some(function (val) { return productFilters.indexOf(val) !== -1; });
     });
 
@@ -138,7 +138,7 @@ function applyFilters() {
   });
 }
 
-// ─── Level 1 → Level 2 cascade ───────────────────────────────────────────────
+// ─── Level 1 to Level 2 cascade ──────────────────────────────────────────────
 (function initLevel1() {
   const level1Wrap = document.querySelector('[data-filter-dropdown="level-1-filters-wrap"]');
   if (!level1Wrap) return;
@@ -247,7 +247,7 @@ function updateLevel2ForkMuting(categorySlug) {
   });
 }
 
-// ─── Level 2 checkboxes → re-apply + show Level 3 ────────────────────────────
+// ─── Level 2 checkboxes: re-apply + show Level 3 ─────────────────────────────
 (function initLevel2() {
   const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
   if (!level2) return;
@@ -344,7 +344,7 @@ function showLevel3(categorySlug) {
   }
 }
 
-// ─── Level 3: hide + reset (defined, not currently called — narazie) ──────────
+// ─── Level 3: hide + reset (defined, not currently called — deferred) ────────
 function hideLevel3() {
   const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
   if (!level3) return;
@@ -385,7 +385,7 @@ function updateLevel3Availability() {
   });
 }
 
-// ─── Level 3 checkboxes → re-apply filters + show Level 4 ───────────────────
+// ─── Level 3 checkboxes: re-apply filters + show Level 4 ────────────────────
 (function initLevel3() {
   const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
   if (!level3) return;
@@ -499,7 +499,7 @@ function updateLevel4Availability() {
   });
 }
 
-// ─── Level 4 checkboxes → re-apply filters ───────────────────────────────────
+// ─── Level 4 checkboxes: re-apply filters ────────────────────────────────────
 (function initLevel4() {
   const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
   if (!level4) return;
