@@ -5,6 +5,9 @@ Lift: Application: Contractor & Rental,lift-application-contractor-rental,6a3a54
 Lift: Working Height 40-60 ft,lift-working-height-40-60-ft,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3a6723e52c3347f13e4386,false,false,,,,cmc-lifts,working-height,40-60 ft,,10
 Lift: Working Height 65-85 ft,lift-working-height-65-85-ft,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3a6723e52c3347f13e4388,false,false,,,,cmc-lifts,working-height,65-85 ft,,20
 Lift: Working Height 85-105 ft,lift-working-height-85-105-ft,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3a6723e52c3347f13e438a,false,false,,,,cmc-lifts,working-height,85-105 ft,,30
+Lift: Lateral Reach 23-30 ft,lift-lateral-reach-23-30-ft,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3d6f8460c969bb7808cf2e,false,false,,,,cmc-lifts,lateral-reach,23 - 30 ft,,10
+Lift: Lateral Reach 31-40 ft,lift-lateral-reach-31-40-ft,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3d6fb6266bd434db006a64,false,false,,,,cmc-lifts,lateral-reach,31 - 40 ft,,20
+Lift: Lateral Reach 41-50 ft,lift-lateral-reach-41-50-ft,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3d6fd777b1b99239cc2495,false,false,,,,cmc-lifts,lateral-reach,41 - 50 ft,,30
 Lift: Lift Carrier Compatible Yes,lift-lift-carrier-compatible-yes,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3a6723e52c3347f13e438c,false,false,,,,cmc-lifts,lift-carrier-compatible,Yes,,10
 Lift: Lift Carrier Compatible No,lift-lift-carrier-compatible-no,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3a6723e52c3347f13e438e,false,false,,,,cmc-lifts,lift-carrier-compatible,No,,20
 Lift Carrier: Compatible with 60HD Arbor Pro,lift-carrier-compatible-with-60hd-arbor-pro,6a3a54a122e3cd58a92f5d69,6a2972f1a0b589bcf6edb9da,6a3a6723e52c3347f13e4390,false,false,,,,lift-carriers,compatible-with,60HD Arbor Pro,,10

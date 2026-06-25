@@ -6,6 +6,16 @@ function toSlug(str) {
   return str.toLowerCase().replace(/\s+/g, '-');
 }
 
+// ─── Helper: get checked Level 2 value for a category (fork parent) ──────────
+function getActiveLevel2ParentCategory(categorySlug) {
+  const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
+  if (!level2) return null;
+  const activeGroup = level2.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  if (!activeGroup) return null;
+  const checked = activeGroup.querySelector('input[type="checkbox"]:checked');
+  return checked ? checked.getAttribute('n4-list-value') : null;
+}
+
 // ─── Level 1: count items ─────────────────────────────────────────────────────
 (function updateLevel1Count() {
   const wrap = document.querySelector('[data-filter-dropdown="level-1-filters-wrap"]');
@@ -46,6 +56,18 @@ function resetLevels() {
       if (btn) btn.classList.remove('w--redirected-checked');
     });
   });
+
+  // Reset Level 2 count and label
+  const countEl = document.querySelector('[data-filters-dropdown="level-2-filters-count"]');
+  if (countEl) countEl.textContent = '(0)';
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-2-label-get"]');
+  if (labelEl) labelEl.textContent = 'Lvl 2 Filter';
+
+  // Reset Level 3 count and label
+  const count3El = document.querySelector('[data-filters-dropdown="level-3-filters-count"]');
+  if (count3El) count3El.textContent = '(0)';
+  const label3El = document.querySelector('[data-filters-dropdown="lvl-3-label-get"]');
+  if (label3El) label3El.textContent = 'Lvl 3 Filter';
 }
 
 // ─── Apply filters to product list ───────────────────────────────────────────
@@ -95,6 +117,7 @@ function applyFilters() {
       const categorySlug = toSlug(this.getAttribute('n4-list-value'));
       resetLevels();
       showLevel2(categorySlug);
+      updateLevel2Availability();
       applyFilters();
     });
   });
@@ -109,9 +132,91 @@ function showLevel2(categorySlug) {
     const match = group.getAttribute('data-filter-list-id') === categorySlug;
     group.style.display = match ? '' : 'none';
   });
+
+  // Update Level 2 count from active group
+  const activeGroup = level2.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  const countEl = document.querySelector('[data-filters-dropdown="level-2-filters-count"]');
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-2-label-get"]');
+
+  if (activeGroup) {
+    const wrap = activeGroup.querySelector('[data-filter-dropdown="level-2-filters-wrap"]');
+    const count = wrap ? wrap.querySelectorAll('[data-filter-dropdown="level-2-filters-item"]').length : 0;
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    const labelPost = activeGroup.querySelector('[data-filters-label="lvl-2-label-post"]');
+    if (labelEl && labelPost) labelEl.textContent = labelPost.textContent.trim();
+  }
 }
 
-// ─── Level 2 checkboxes → re-apply filters ───────────────────────────────────
+// ─── Level 2: mute unavailable filters ───────────────────────────────────────
+function updateLevel2Availability() {
+  const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
+  const selectedCategory = categoryInput ? categoryInput.getAttribute('n4-list-value') : null;
+
+  // Collect all filter slugs from products matching selected category
+  const availableFilters = new Set();
+  document.querySelectorAll('[n4-filters-item]').forEach(function (item) {
+    const categoryEl = item.querySelector('[n4-list-field="category"]');
+    const productCategory = categoryEl ? categoryEl.textContent.trim() : '';
+    if (!selectedCategory || productCategory === selectedCategory) {
+      item.querySelectorAll('[n4-list-field="filter"]').forEach(function (p) {
+        availableFilters.add(p.getAttribute('n4-list-value'));
+      });
+    }
+  });
+
+  // Mute/unmute each Level 2 checkbox item
+  const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
+  if (!level2) return;
+  level2.querySelectorAll('[data-filter-dropdown="level-2-filters-item"]').forEach(function (item) {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    const available = availableFilters.has(cb.getAttribute('n4-list-value'));
+    item.style.opacity = available ? '' : '0.5';
+    item.style.pointerEvents = available ? '' : 'none';
+  });
+}
+
+// ─── Level 2: fork muting (Carlton — mutually exclusive choices) ──────────────
+// Detects fork automatically: if Level 3 items have non-empty data-filter-parent-category
+// matching Level 2 values, checking one mutes the others.
+function updateLevel2ForkMuting(categorySlug) {
+  const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
+  if (!level2) return;
+  const activeGroup = level2.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  if (!activeGroup) return;
+
+  // Collect fork parent values from Level 3 items with non-empty data-filter-parent-category
+  const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
+  const level3Group = level3 ? level3.querySelector('[data-filter-list-id="' + categorySlug + '"]') : null;
+  if (!level3Group) return;
+
+  const forkParents = new Set();
+  level3Group.querySelectorAll('[data-filter-dropdown="level-3-filters-item"][data-filter-parent-category]').forEach(function (el) {
+    const pc = el.getAttribute('data-filter-parent-category');
+    if (pc && pc !== '') forkParents.add(pc);
+  });
+  if (forkParents.size === 0) return; // No fork dependency — nothing to do
+
+  // Find which fork value is currently checked (if any)
+  const checkedFork = getActiveLevel2ParentCategory(categorySlug);
+
+  // Override: mute all non-selected fork items on top of availability state
+  activeGroup.querySelectorAll('[data-filter-dropdown="level-2-filters-item"]').forEach(function (item) {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    const val = cb.getAttribute('n4-list-value');
+    if (!forkParents.has(val)) return; // Not a fork item — skip
+
+    if (checkedFork && val !== checkedFork) {
+      item.style.opacity = '0.5';
+      item.style.pointerEvents = 'none';
+    }
+    // If no fork is checked, updateLevel2Availability() already set the correct state
+  });
+}
+
+// ─── Level 2 checkboxes → re-apply + show Level 3 ────────────────────────────
 (function initLevel2() {
   const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
   if (!level2) return;
@@ -119,6 +224,140 @@ function showLevel2(categorySlug) {
   level2.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
     cb.addEventListener('change', function () {
       applyFilters();
+
+      const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
+      if (!categoryInput) return;
+      const categorySlug = toSlug(categoryInput.getAttribute('n4-list-value'));
+
+      const anyChecked = level2.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+
+      if (anyChecked) {
+        showLevel3(categorySlug);
+        updateLevel3Availability();
+      }
+
+      // Always re-apply Level 2 muting after any checkbox change (availability + fork on top)
+      updateLevel2Availability();
+      updateLevel2ForkMuting(categorySlug);
+    });
+  });
+})();
+
+// ─── Level 3: show (with Carlton fork logic) ──────────────────────────────────
+function showLevel3(categorySlug) {
+  const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
+  if (!level3) return;
+  level3.style.display = '';
+
+  level3.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
+    const match = group.getAttribute('data-filter-list-id') === categorySlug;
+    group.style.display = match ? '' : 'none';
+  });
+
+  const activeGroup = level3.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  const countEl = document.querySelector('[data-filters-dropdown="level-3-filters-count"]');
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-3-label-get"]');
+
+  if (!activeGroup) return;
+
+  // Detect fork: any Level 3 items with non-empty data-filter-parent-category?
+  const isFork = !!activeGroup.querySelector(
+    '[data-filter-dropdown="level-3-filters-item"][data-filter-parent-category]:not([data-filter-parent-category=""])'
+  );
+
+  if (isFork) {
+    const selectedParent = getActiveLevel2ParentCategory(categorySlug);
+
+    // Show/hide items by parent category match
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-3-filters-item"]').forEach(function (item) {
+      const parentCat = item.getAttribute('data-filter-parent-category');
+      item.style.display = (parentCat === selectedParent) ? '' : 'none';
+    });
+
+    // Show/hide label elements by parent category match
+    activeGroup.querySelectorAll('[data-filters-label="lvl-3-label-post"]').forEach(function (lbl) {
+      const parentCat = lbl.getAttribute('data-filter-parent-category');
+      lbl.style.display = (parentCat === selectedParent) ? '' : 'none';
+    });
+
+    // Count only visible items
+    let count = 0;
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-3-filters-item"]').forEach(function (item) {
+      if (item.style.display !== 'none') count++;
+    });
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    // Label text from matching parent category label element
+    const matchingLabel = selectedParent
+      ? activeGroup.querySelector('[data-filters-label="lvl-3-label-post"][data-filter-parent-category="' + selectedParent + '"]')
+      : null;
+    if (labelEl && matchingLabel) labelEl.textContent = matchingLabel.textContent.trim();
+
+  } else {
+    // Non-fork: original behavior — show all items
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-3-filters-item"]').forEach(function (item) {
+      item.style.display = '';
+    });
+
+    const wrap = activeGroup.querySelector('[data-filter-dropdown="level-3-filters-wrap"]');
+    const count = wrap ? wrap.querySelectorAll('[data-filter-dropdown="level-3-filters-item"]').length : 0;
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    const labelPost = activeGroup.querySelector('[data-filters-label="lvl-3-label-post"]');
+    if (labelEl && labelPost) labelEl.textContent = labelPost.textContent.trim();
+  }
+}
+
+// ─── Level 3: hide + reset (defined, not currently called — narazie) ──────────
+function hideLevel3() {
+  const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
+  if (!level3) return;
+  level3.style.display = 'none';
+
+  level3.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+    input.checked = false;
+    input.classList.remove('w--redirected-checked');
+  });
+
+  const countEl = document.querySelector('[data-filters-dropdown="level-3-filters-count"]');
+  if (countEl) countEl.textContent = '(0)';
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-3-label-get"]');
+  if (labelEl) labelEl.textContent = 'Lvl 3 Filter';
+}
+
+// ─── Level 3: mute unavailable filters (based on visible products) ────────────
+function updateLevel3Availability() {
+  // Collect filter slugs from currently VISIBLE products only
+  const availableFilters = new Set();
+  document.querySelectorAll('[n4-filters-item]').forEach(function (item) {
+    if (item.style.display === 'none') return;
+    item.querySelectorAll('[n4-list-field="filter"]').forEach(function (p) {
+      availableFilters.add(p.getAttribute('n4-list-value'));
+    });
+  });
+
+  const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
+  if (!level3) return;
+  // Only mute items that are currently visible (not fork-hidden)
+  level3.querySelectorAll('[data-filter-dropdown="level-3-filters-item"]').forEach(function (item) {
+    if (item.style.display === 'none') return; // fork-hidden — don't touch
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    const available = availableFilters.has(cb.getAttribute('n4-list-value'));
+    item.style.opacity = available ? '' : '0.5';
+    item.style.pointerEvents = available ? '' : 'none';
+  });
+}
+
+// ─── Level 3 checkboxes → re-apply filters ───────────────────────────────────
+(function initLevel3() {
+  const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
+  if (!level3) return;
+
+  level3.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      applyFilters();
+      updateLevel3Availability();
     });
   });
 })();

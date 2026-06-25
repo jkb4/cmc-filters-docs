@@ -113,6 +113,7 @@
       margin: 12px 0 20px;
     }
     .callout.warn { border-left-color: var(--yellow); background: #1e1a10; }
+    .callout.fork { border-left-color: var(--green); background: #111e18; }
     .version-tag {
       display: inline-block;
       background: var(--surface); border: 1px solid var(--border);
@@ -153,6 +154,7 @@
         <li><a href="#categories">Categories & Filters</a></li>
         <li><a href="#engine">Filter Engine</a></li>
         <li><a href="#matching">Matching Logic</a></li>
+        <li><a href="#fork">Carlton Fork Logic</a></li>
       </ul>
     </div>
     <div class="section-gap">
@@ -166,11 +168,12 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v1.0</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v1.4</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
-        multi-level filter hierarchy (Level 1 categories → Level 2+ filter checkboxes).
+        multi-level filter hierarchy. Supports up to 4 visible levels with cascading show/hide,
+        availability muting, and Carlton's fork logic (conditional Level 3 based on Level 2 choice).
         All logic lives in <code>code/filters_engine.js</code>.
       </p>
 
@@ -182,9 +185,9 @@
 ├── docs/
 │   └── index.html          ← this file
 └── products/
-    ├── import-1-filter-labels.csv
-    ├── import-2-filter-values.csv
-    ├── product-categories-import.csv
+    ├── import-1-filter-labels.csv     ← Filter Labels collection
+    ├── import-2-filter-values.csv     ← Filters collection
+    ├── product-categories-import.csv  ← Categories reference
     └── schema-products-collection.csv</code></pre>
     </section>
 
@@ -223,39 +226,62 @@
 
     <section id="data-attributes">
       <h2>data-* Attributes</h2>
-      <p>Legacy <code>data-*</code> attributes still used for structural cascade (show/hide groups).</p>
+      <p>Used for structural cascade (show/hide groups, counts, labels).</p>
       <table>
         <thead><tr><th>Attribute</th><th>Used on</th><th>Example value</th><th>Purpose</th></tr></thead>
         <tbody>
           <tr><td><code>data-filters-dropdown</code></td><td>Level wrappers</td><td><code>level-2</code>, <code>level-3</code>, <code>level-4</code></td><td>Show/hide entire level</td></tr>
           <tr><td><code>data-filter-dropdown</code></td><td>Level 1 wrap / item</td><td><code>level-1-filters-wrap</code>, <code>level-1-filters-item</code></td><td>Count items, attach listeners</td></tr>
-          <tr><td><code>data-filters-dropdown</code></td><td>Count element</td><td><code>level-1-filters-count</code></td><td>Renders <code>(13)</code> count</td></tr>
-          <tr><td><code>data-filter-list-id</code></td><td>Level 2 filter group</td><td><code>cmc-lifts</code>, <code>carlton</code></td><td>Matches slug derived from Level 1 radio value</td></tr>
+          <tr><td><code>data-filters-dropdown</code></td><td>Count / label elements</td><td><code>level-2-filters-count</code>, <code>lvl-2-label-get</code></td><td>Receives count <code>(N)</code> or label text</td></tr>
+          <tr><td><code>data-filters-label</code></td><td>Hidden label source</td><td><code>lvl-2-label-post</code>, <code>lvl-3-label-post</code></td><td>Source text for label display name</td></tr>
+          <tr><td><code>data-filter-list-id</code></td><td>Level 2 / 3 filter group</td><td><code>cmc-lifts</code>, <code>carlton</code></td><td>Matched against <code>toSlug(Level 1 value)</code></td></tr>
+          <tr><td><code>data-filter-parent-category</code></td><td>Level 3 items &amp; labels</td><td><code>carlton-type-stump-grinder</code></td><td>Carlton fork — item visible only when this Level 2 value is checked. Empty = always show.</td></tr>
         </tbody>
       </table>
     </section>
 
     <section id="categories">
       <h2>Categories & Filters</h2>
+      <p>Filter hierarchy per category. Source of truth: <code>products/product-categories-import.csv</code> and Webflow CMS.</p>
+
+      <h3>CMC Lifts <span class="badge badge-blue">4 filter levels</span></h3>
       <table>
-        <thead><tr><th>Category</th><th>Slug</th><th>Level 2 Filters</th></tr></thead>
+        <thead><tr><th>Level</th><th>Filter Label</th><th>Filter Values</th></tr></thead>
         <tbody>
-          <tr>
-            <td>CMC Lifts</td><td><code>cmc-lifts</code></td>
-            <td>Application · Working Height · Lift Carrier Compatible</td>
-          </tr>
-          <tr>
-            <td>Lift Carriers</td><td><code>lift-carriers</code></td>
-            <td>CMC Model Compatibility · Make · Max Weight Capacity</td>
-          </tr>
-          <tr>
-            <td>Trailers</td><td><code>trailers</code></td>
-            <td>Brand · Trailer Type · GVWR</td>
-          </tr>
-          <tr>
-            <td>Carlton</td><td><code>carlton</code></td>
-            <td>Equipment Type</td>
-          </tr>
+          <tr><td>Level 2</td><td><code>application</code></td><td>Arbor · Utility Vegetation Management · Contractor &amp; Rental</td></tr>
+          <tr><td>Level 3</td><td><code>working-height</code></td><td>40-60 ft · 65-85 ft · 85-105 ft</td></tr>
+          <tr><td>Level 4</td><td><code>lateral-reach</code></td><td>23-30 ft · 31-40 ft · 41-50 ft</td></tr>
+          <tr><td>Level 5</td><td><code>lift-carrier-compatible</code></td><td>Yes · No</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Lift Carriers <span class="badge badge-blue">2 filter levels</span></h3>
+      <table>
+        <thead><tr><th>Level</th><th>Filter Label</th><th>Filter Values</th></tr></thead>
+        <tbody>
+          <tr><td>Level 2</td><td><code>compatible-with</code></td><td>60HD Arbor Pro · 60HD Contractor Pro · 72HD Arbor Pro · 72HD Contractor Pro · 75i · 90i · 90HD Arbor Pro · 100HD Contractor Pro</td></tr>
+          <tr><td>Level 3</td><td><code>make</code></td><td>Ford · Isuzu</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Trailers <span class="badge badge-blue">3 filter levels</span></h3>
+      <table>
+        <thead><tr><th>Level</th><th>Filter Label</th><th>Filter Values</th></tr></thead>
+        <tbody>
+          <tr><td>Level 2</td><td><code>brand</code></td><td>ANTS Trailers · B-Wise Trailers</td></tr>
+          <tr><td>Level 3</td><td><code>trailer-type</code></td><td>Open Deck · Enclosed · Drop Deck · Conveyor</td></tr>
+          <tr><td>Level 4</td><td><code>gvwr</code></td><td>9990 lbs · 12000 lbs · 14000 lbs</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Carlton <span class="badge badge-green">Fork logic</span></h3>
+      <p>Carlton Level 2 is a fork point. Checking Stump Grinder or Wood Chipper determines which Level 3/4 filters appear.</p>
+      <table>
+        <thead><tr><th>Level</th><th>Filter Label</th><th>Stump Grinder branch</th><th>Wood Chipper branch</th></tr></thead>
+        <tbody>
+          <tr><td>Level 2</td><td><code>carlton-type</code></td><td colspan="2">Stump Grinder · Wood Chipper (mutually exclusive)</td></tr>
+          <tr><td>Level 3</td><td><code>drive-type</code> / <code>cutting-system</code></td><td>Tracks · Wheels</td><td>Disc · Drum</td></tr>
+          <tr><td>Level 4</td><td><code>horsepower</code> / <code>capacity</code></td><td>35-40 HP · 54-56 HP · 74 HP · 116-134 HP · 140-173 HP · 300 HP</td><td>7" · 9" · 12" · 15" · 18" · 21"</td></tr>
         </tbody>
       </table>
     </section>
@@ -269,19 +295,31 @@
         <thead><tr><th>Function</th><th>Description</th></tr></thead>
         <tbody>
           <tr><td><code>toSlug(str)</code></td><td>Converts display name to slug — <code>"CMC Lifts" → "cmc-lifts"</code></td></tr>
+          <tr><td><code>getActiveLevel2ParentCategory(slug)</code></td><td>Returns the checked Level 2 checkbox value for a given category slug — used for fork detection</td></tr>
           <tr><td><code>updateLevel1Count()</code></td><td>Counts Level 1 radio items, renders <code>(N)</code> in count element</td></tr>
           <tr><td><code>initLevelVisibility()</code></td><td>Hides level-2/3/4 on page load (skipped in Webflow Designer)</td></tr>
-          <tr><td><code>resetLevels()</code></td><td>Hides + unchecks all Level 2/3/4 inputs; removes Webflow visual classes</td></tr>
-          <tr><td><code>applyFilters()</code></td><td>Main filter function — shows/hides product items</td></tr>
-          <tr><td><code>showLevel2(categorySlug)</code></td><td>Shows Level 2 wrapper, reveals only the matching <code>data-filter-list-id</code> group</td></tr>
-          <tr><td><code>initLevel1()</code></td><td>Attaches <code>change</code> listeners to Level 1 radios</td></tr>
-          <tr><td><code>initLevel2()</code></td><td>Attaches <code>change</code> listeners to Level 2 checkboxes</td></tr>
+          <tr><td><code>resetLevels()</code></td><td>Hides + unchecks all Level 2/3/4 inputs; removes Webflow visual classes; resets counts/labels</td></tr>
+          <tr><td><code>applyFilters()</code></td><td>Main filter function — reads checked category + filters, shows/hides product items (OR logic)</td></tr>
+          <tr><td><code>showLevel2(categorySlug)</code></td><td>Shows Level 2 wrapper, reveals matching <code>data-filter-list-id</code> group, updates count and label</td></tr>
+          <tr><td><code>updateLevel2Availability()</code></td><td>Mutes Level 2 items (opacity 0.5, pointer-events none) if no products in selected category have that filter</td></tr>
+          <tr><td><code>updateLevel2ForkMuting(categorySlug)</code></td><td>Carlton only — when a fork-parent Level 2 value is checked, mutes the other fork choices. Runs after <code>updateLevel2Availability()</code> to override it.</td></tr>
+          <tr><td><code>initLevel2()</code></td><td>Attaches <code>change</code> listeners to Level 2 checkboxes; calls applyFilters, showLevel3, updateLevel3Availability, updateLevel2Availability, updateLevel2ForkMuting</td></tr>
+          <tr><td><code>showLevel3(categorySlug)</code></td><td>Shows Level 3 wrapper; detects fork automatically via non-empty <code>data-filter-parent-category</code> on items; filters/labels by active fork parent</td></tr>
+          <tr><td><code>hideLevel3()</code></td><td>Hides + resets Level 3 — defined but not currently called (deferred)</td></tr>
+          <tr><td><code>updateLevel3Availability()</code></td><td>Mutes Level 3 items based on currently VISIBLE products (dynamic). Skips fork-hidden items.</td></tr>
+          <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners to Level 3 checkboxes; calls applyFilters + updateLevel3Availability</td></tr>
         </tbody>
       </table>
 
       <h3>Designer mode guard</h3>
       <pre><code>const IS_DESIGNER = document.documentElement.hasAttribute('wf-designer');
 // initLevelVisibility() skips hiding when IS_DESIGNER is true</code></pre>
+
+      <h3>Level 2 muting call order (on checkbox change)</h3>
+      <pre><code>applyFilters()
+// → if anyChecked: showLevel3(slug), updateLevel3Availability()
+updateLevel2Availability()   // 1. reset all Level 2 items to availability state
+updateLevel2ForkMuting(slug) // 2. override: mute non-selected fork items on top</code></pre>
     </section>
 
     <section id="matching">
@@ -301,26 +339,115 @@ const filterMatch = checkedFilters.some(val => productFilters.includes(val));</c
 
       <div class="callout warn">
         <strong>OR logic:</strong> A product appears if it matches <em>any</em> of the checked filters —
-        not all of them. AND logic is not currently implemented.
+        not all of them. Filters from Level 2 and Level 3 are pooled together.
       </div>
 
       <h3>Level 1 → Level 2 cascade</h3>
-      <pre><code>// Radio value → slug → match data-filter-list-id
+      <pre><code>// Radio display value → slug → match data-filter-list-id on Level 2 groups
 const categorySlug = toSlug(radio.getAttribute('n4-list-value')); // "cmc-lifts"
-// Level 2 groups with matching data-filter-list-id become visible</code></pre>
+// Only the group with data-filter-list-id="cmc-lifts" becomes visible</code></pre>
+
+      <h3>Level 2 → Level 3 cascade</h3>
+      <pre><code>// Level 3 shows when at least one Level 2 checkbox is checked
+// showLevel3(categorySlug) re-runs each time a Level 2 checkbox changes
+// Level 3 does NOT hide when Level 2 is unchecked (deferred)</code></pre>
+    </section>
+
+    <section id="fork">
+      <h2>Carlton Fork Logic</h2>
+
+      <div class="callout fork">
+        <strong>Carlton only.</strong> All other categories use a flat checkbox approach.
+        Carlton Level 2 is a fork: checking Stump Grinder or Wood Chipper determines
+        which Level 3 (and future Level 4) filters appear.
+      </div>
+
+      <h3>How fork detection works</h3>
+      <p>
+        The engine detects a fork automatically by checking whether any Level 3
+        <code>[data-filter-dropdown="level-3-filters-item"]</code> elements inside the active
+        category group have a non-empty <code>data-filter-parent-category</code> attribute.
+        No hardcoded category names.
+      </p>
+      <pre><code>const isFork = !!activeGroup.querySelector(
+  '[data-filter-dropdown="level-3-filters-item"]' +
+  '[data-filter-parent-category]:not([data-filter-parent-category=""])'
+);</code></pre>
+
+      <h3>Level 2 mutual exclusion</h3>
+      <p>
+        When Stump Grinder is checked, Wood Chipper gets muted (opacity 0.5, pointer-events none)
+        and vice versa. Implemented in <code>updateLevel2ForkMuting()</code> which runs after
+        <code>updateLevel2Availability()</code> on every Level 2 checkbox change.
+      </p>
+
+      <h3>Level 3 item / label visibility</h3>
+      <p>
+        Each Level 3 item has <code>data-filter-parent-category</code> set to the Level 2 slug
+        it belongs to (e.g. <code>carlton-type-stump-grinder</code>). <code>showLevel3()</code>
+        hides items whose parent category doesn't match the currently checked Level 2 value.
+        Label elements work the same way.
+      </p>
+      <pre><code>// Items with data-filter-parent-category set in Webflow CMS:
+//   carlton-stump-grinder-drive-type-tracks  → data-filter-parent-category="carlton-type-stump-grinder"
+//   carlton-wood-chipper-cutting-system-disc → data-filter-parent-category="carlton-type-wood-chipper"
+
+// showLevel3() shows only items matching the active fork parent
+item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
+
+      <h3>Level 3 availability muting with fork</h3>
+      <p>
+        <code>updateLevel3Availability()</code> skips items that are already fork-hidden
+        (<code>display: none</code>) so fork visibility and availability muting don't conflict.
+      </p>
     </section>
 
     <section id="changelog">
       <h2>Changelog</h2>
 
       <div class="changelog-entry">
-        <div class="date">2026-06-25</div>
+        <div class="date">2026-06-25 — v1.4</div>
+        <ul>
+          <li>Synced <code>import-1-filter-labels.csv</code> with final v2 Webflow export</li>
+          <li>Added <code>Parent Sub Category - Carlton Only</code> column to Filters Labels CSV</li>
+          <li>Carlton fork mapping confirmed: Drive Type → <code>carlton-type-stump-grinder</code>, Cutting System → <code>carlton-type-wood-chipper</code></li>
+          <li>Level 4 fork mapping confirmed: Horsepower → <code>carlton-type-stump-grinder</code>, Capacity → <code>carlton-type-wood-chipper</code></li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.3</div>
+        <ul>
+          <li>Carlton fork logic: Level 2 mutual exclusion (<code>updateLevel2ForkMuting()</code>)</li>
+          <li>Carlton fork logic: Level 3 items/labels filtered by <code>data-filter-parent-category</code></li>
+          <li>Fork auto-detection — no hardcoded category names</li>
+          <li><code>updateLevel3Availability()</code> updated to skip fork-hidden items</li>
+          <li><code>initLevel2()</code> now calls <code>updateLevel2Availability()</code> + <code>updateLevel2ForkMuting()</code> on every checkbox change</li>
+          <li>Updated <code>product-categories-import.csv</code> — full hierarchy including Carlton fork and Lateral Reach</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.2</div>
+        <ul>
+          <li>Added Lateral Reach filter to CMC Lifts (3 values: 23-30 ft, 31-40 ft, 41-50 ft)</li>
+          <li>Updated <code>import-1-filter-labels.csv</code> — Lateral Reach label, sort order 3; Lift Carrier Compatible bumped to 4</li>
+          <li>Updated <code>import-2-filter-values.csv</code> — 3 new Lateral Reach rows</li>
+          <li>Level 3 cascade: appears after first Level 2 checkbox checked; stays visible (hide deferred)</li>
+          <li>Level 3 count + label update from active <code>data-filter-list-id</code> group</li>
+          <li>Level 3 muting: dynamic — based on currently VISIBLE products (not full category)</li>
+          <li>Level 2 muting: static — based on all products in selected category</li>
+        </ul>
+      </div>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.0</div>
         <ul>
           <li>Replaced Finsweet <code>fs-cmsfilter</code> with custom <code>filters_engine.js</code></li>
           <li>Replaced all <code>fs-*</code> attributes with <code>n4-*</code></li>
           <li>Level 2 switched from radio buttons to checkboxes (multi-select)</li>
           <li>Added <code>n4-filters-item="[slug]"</code> on <code>.equip2_prod_item</code> wrapper</li>
-          <li>Product selector updated to <code>[n4-filters-item]</code></li>
+          <li>Level 2 count + label read from active <code>data-filter-list-id</code> group</li>
           <li>Init git repo, first commit</li>
         </ul>
       </div>
