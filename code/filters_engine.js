@@ -135,6 +135,7 @@ function updateClearAllButton() {
 (function initClearAllButton() {
   var btn = document.querySelector('[data-filters-control="clear-all-filters"]');
   if (!btn) return;
+  btn.setAttribute('aria-label', 'Clear all filters');
   btn.addEventListener('click', function () {
     // Deselect L1 radio
     document.querySelectorAll('[n4-list-field="category"][type="radio"]').forEach(function (radio) {
