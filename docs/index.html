@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMC Filters Engine v2.2 — Docs</title>
+  <title>CMC Filters Engine v2.3 — Docs</title>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -183,7 +183,7 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v2.2</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v2.3</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
@@ -689,6 +689,16 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-26 — v2.3</div>
+        <ul>
+          <li><strong>Level 2–5 initial hide moved to CSS:</strong> <code>[data-filters-dropdown="level-N"]:not(.is-visible) { display: none !important }</code> — JS IIFE removed</li>
+          <li><strong>Class-based visibility:</strong> all <code>showLevelX()</code> functions now use <code>classList.add('is-visible')</code> instead of <code>style.display = ''</code>; <code>resetLevel()</code> uses <code>classList.remove('is-visible')</code> — fixes bug where removing inline style caused CSS <code>display:none</code> to retake control</li>
+          <li><strong>Clear-all button visibility fix:</strong> same pattern — <code>:not(.is-active) { display: none !important }</code> + <code>classList.toggle('is-active')</code> in JS instead of <code>style.display</code></li>
+          <li><strong>Designer override expanded:</strong> <code>html.wf-design-mode</code> and <code>html.w-editor</code> now also show L2–L5 and the clear-all button for layout preview</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-26 — v2.2</div>
