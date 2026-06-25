@@ -1,11 +1,11 @@
   /* Filters Engine CSS */
 
-  /* Hide levels 2–5 on first load — JS shows them when L1 is selected */
-  [data-filters-dropdown="level-2"],
-  [data-filters-dropdown="level-3"],
-  [data-filters-dropdown="level-4"],
-  [data-filters-dropdown="level-5"] {
-    display: none;
+  /* Hide levels 2–5 on first load — JS adds .is-visible to show them */
+  [data-filters-dropdown="level-2"]:not(.is-visible),
+  [data-filters-dropdown="level-3"]:not(.is-visible),
+  [data-filters-dropdown="level-4"]:not(.is-visible),
+  [data-filters-dropdown="level-5"]:not(.is-visible) {
+    display: none !important;
   }
 
   /* Hide skeleton tag button, used only as JS clone source */

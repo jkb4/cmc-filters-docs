@@ -168,7 +168,7 @@ function resetLevel(levelNum) {
   const levelKey = 'level-' + levelNum;
   const el = document.querySelector('[data-filters-dropdown="' + levelKey + '"]');
   if (!el) return;
-  el.style.display = 'none';
+  el.classList.remove('is-visible');
 
   el.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
     input.checked = false;
@@ -276,7 +276,7 @@ function applyFilters() {
 function showLevel2(categorySlug) {
   const level2 = document.querySelector('[data-filters-dropdown="level-2"]');
   if (!level2) return;
-  level2.style.display = '';
+  level2.classList.add('is-visible');
 
   level2.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
     const match = group.getAttribute('data-filter-list-id') === categorySlug;
@@ -413,7 +413,7 @@ function updateLevel2ForkMuting(categorySlug) {
 function showLevel3(categorySlug) {
   const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
   if (!level3) return;
-  level3.style.display = '';
+  level3.classList.add('is-visible');
 
   level3.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
     const match = group.getAttribute('data-filter-list-id') === categorySlug;
@@ -478,7 +478,7 @@ function showLevel3(categorySlug) {
 function hideLevel3() {
   const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
   if (!level3) return;
-  level3.style.display = 'none';
+  level3.classList.remove('is-visible');
 
   level3.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
     input.checked = false;
@@ -565,7 +565,7 @@ function showLevel4(categorySlug) {
   const hasItems = !!activeGroup.querySelector('[data-filter-dropdown="level-4-filters-item"]');
   if (!hasItems) return;
 
-  level4.style.display = '';
+  level4.classList.add('is-visible');
 
   level4.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
     const match = group.getAttribute('data-filter-list-id') === categorySlug;
@@ -691,7 +691,7 @@ function showLevel5(categorySlug) {
   const hasItems = !!activeGroup.querySelector('[data-filter-dropdown="level-5-filters-item"]');
   if (!hasItems) return;
 
-  level5.style.display = '';
+  level5.classList.add('is-visible');
 
   level5.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
     const match = group.getAttribute('data-filter-list-id') === categorySlug;
