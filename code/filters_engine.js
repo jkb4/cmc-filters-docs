@@ -35,6 +35,24 @@ function getLevel3ForkParent(categorySlug) {
   return found;
 }
 
+// ─── Helper: get fork parent from visible Level 4 items ───────────────────────
+// Used by: showLevel5() -- parallel to getLevel3ForkParent
+function getLevel4ForkParent(categorySlug) {
+  const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
+  if (!level4) return null;
+  const group = level4.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  if (!group) return null;
+  var found = null;
+  group.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').forEach(function (item) {
+    if (found !== null) return;
+    if (item.style.display !== 'none') {
+      var pc = item.getAttribute('data-filter-parent-category');
+      if (pc && pc !== '') found = pc;
+    }
+  });
+  return found;
+}
+
 // ─── Level 1: count items ─────────────────────────────────────────────────────
 (function updateLevel1Count() {
   const wrap = document.querySelector('[data-filter-dropdown="level-1-filters-wrap"]');
@@ -417,10 +435,12 @@ function showLevel4(categorySlug) {
   const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
   if (!level4) return;
 
-  // Check for a matching group BEFORE showing the container.
-  // If none exists (e.g. Lift Carriers has no Level 4), leave the container hidden.
+  // Check for a matching group with items BEFORE showing the container.
+  // Lift Carriers has an empty Level 4 group in the DOM -- leave the container hidden.
   const activeGroup = level4.querySelector('[data-filter-list-id="' + categorySlug + '"]');
   if (!activeGroup) return;
+  const hasItems = !!activeGroup.querySelector('[data-filter-dropdown="level-4-filters-item"]');
+  if (!hasItems) return;
 
   level4.style.display = '';
 
@@ -499,15 +519,130 @@ function updateLevel4Availability() {
   });
 }
 
-// ─── Level 4 checkboxes: re-apply filters ────────────────────────────────────
+// ─── Level 4 checkboxes: re-apply filters + show Level 5 ─────────────────────
 (function initLevel4() {
   const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
   if (!level4) return;
 
   level4.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
     cb.addEventListener('change', function () {
+      // Cascade reset: Level 4 change clears Level 5
+      resetLevel(5);
+
       applyFilters();
       updateLevel4Availability();
+
+      const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
+      if (!categoryInput) return;
+      const categorySlug = toSlug(categoryInput.getAttribute('n4-list-value'));
+
+      const anyChecked = level4.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+      if (anyChecked) {
+        showLevel5(categorySlug);
+        updateLevel5Availability();
+      }
+    });
+  });
+})();
+
+// ─── Level 5: show ────────────────────────────────────────────────────────────
+function showLevel5(categorySlug) {
+  const level5 = document.querySelector('[data-filters-dropdown="level-5"]');
+  if (!level5) return;
+
+  const activeGroup = level5.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  if (!activeGroup) return;
+
+  // Groups for Carlton, Trailers, Lift Carriers exist in DOM but are empty -- leave hidden
+  const hasItems = !!activeGroup.querySelector('[data-filter-dropdown="level-5-filters-item"]');
+  if (!hasItems) return;
+
+  level5.style.display = '';
+
+  level5.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
+    const match = group.getAttribute('data-filter-list-id') === categorySlug;
+    group.style.display = match ? '' : 'none';
+  });
+
+  const countEl = document.querySelector('[data-filters-dropdown="level-5-filters-count"]');
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-5-label-get"]');
+
+  // Detect fork: any Level 5 items with non-empty data-filter-parent-category?
+  const isFork = !!activeGroup.querySelector(
+    '[data-filter-dropdown="level-5-filters-item"][data-filter-parent-category]:not([data-filter-parent-category=""])'
+  );
+
+  if (isFork) {
+    // Fork parent key -- read from visible Level 4 items
+    const selectedParent = getLevel4ForkParent(categorySlug);
+
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-5-filters-item"]').forEach(function (item) {
+      const parentCat = item.getAttribute('data-filter-parent-category');
+      item.style.display = (parentCat === selectedParent) ? '' : 'none';
+    });
+
+    activeGroup.querySelectorAll('[data-filters-label="lvl-5-label-post"]').forEach(function (lbl) {
+      const parentCat = lbl.getAttribute('data-filter-parent-category');
+      lbl.style.display = (parentCat === selectedParent) ? '' : 'none';
+    });
+
+    let count = 0;
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-5-filters-item"]').forEach(function (item) {
+      if (item.style.display !== 'none') count++;
+    });
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    const matchingLabel = selectedParent
+      ? activeGroup.querySelector('[data-filters-label="lvl-5-label-post"][data-filter-parent-category="' + selectedParent + '"]')
+      : null;
+    if (labelEl && matchingLabel) labelEl.textContent = matchingLabel.textContent.trim();
+
+  } else {
+    // Non-fork: show all items
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-5-filters-item"]').forEach(function (item) {
+      item.style.display = '';
+    });
+
+    const wrap = activeGroup.querySelector('[data-filter-dropdown="level-5-filters-wrap"]');
+    const count = wrap ? wrap.querySelectorAll('[data-filter-dropdown="level-5-filters-item"]').length : 0;
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    const labelPost = activeGroup.querySelector('[data-filters-label="lvl-5-label-post"]');
+    if (labelEl && labelPost) labelEl.textContent = labelPost.textContent.trim();
+  }
+}
+
+// ─── Level 5: mute unavailable filters (based on visible products) ────────────
+function updateLevel5Availability() {
+  const availableFilters = new Set();
+  document.querySelectorAll('[n4-filters-item]').forEach(function (item) {
+    if (item.style.display === 'none') return;
+    item.querySelectorAll('[n4-list-field="filter"]').forEach(function (p) {
+      availableFilters.add(p.getAttribute('n4-list-value'));
+    });
+  });
+
+  const level5 = document.querySelector('[data-filters-dropdown="level-5"]');
+  if (!level5) return;
+  level5.querySelectorAll('[data-filter-dropdown="level-5-filters-item"]').forEach(function (item) {
+    if (item.style.display === 'none') return; // fork-hidden -- don't touch
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    const available = availableFilters.has(cb.getAttribute('n4-list-value'));
+    item.style.opacity = available ? '' : '0.5';
+    item.style.pointerEvents = available ? '' : 'none';
+  });
+}
+
+// ─── Level 5 checkboxes: re-apply filters ────────────────────────────────────
+(function initLevel5() {
+  const level5 = document.querySelector('[data-filters-dropdown="level-5"]');
+  if (!level5) return;
+
+  level5.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      applyFilters();
+      updateLevel5Availability();
     });
   });
 })();
