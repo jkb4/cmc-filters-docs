@@ -1,13 +1,24 @@
   /* Filters Engine CSS */
 
+  /* Hide levels 2–5 on first load — JS shows them when L1 is selected */
+  [data-filters-dropdown="level-2"],
+  [data-filters-dropdown="level-3"],
+  [data-filters-dropdown="level-4"],
+  [data-filters-dropdown="level-5"] {
+    display: none;
+  }
+
   /* Hide skeleton tag button, used only as JS clone source */
   [data-filters-tags="skeleton"] {
       display: none;
   }
 
   /* Clear-all button: hidden until at least one filter is active */
+  [data-filters-control="clear-all-filters"]:not(.is-active) {
+    display: none !important;
+  }
+
   [data-filters-control="clear-all-filters"] {
-    display: none;
     transition: filter var(--transition-duration-1) var(--transition-ease-in-out);
   }
 
@@ -107,10 +118,20 @@
       box-shadow: none !important;
   }
 
-  /* Webflow Designer and Editor preview */
+  /* Webflow Designer and Editor preview: show everything hidden by default */
   html.wf-design-mode [data-filters-tags="skeleton"],
   html.wf-design-mode [data-filters-tags="slot"],
+  html.wf-design-mode [data-filters-dropdown="level-2"],
+  html.wf-design-mode [data-filters-dropdown="level-3"],
+  html.wf-design-mode [data-filters-dropdown="level-4"],
+  html.wf-design-mode [data-filters-dropdown="level-5"],
+  html.wf-design-mode [data-filters-control="clear-all-filters"],
   html.w-editor [data-filters-tags="skeleton"],
-  html.w-editor [data-filters-tags="slot"] {
-      display: block !important;
+  html.w-editor [data-filters-tags="slot"],
+  html.w-editor [data-filters-dropdown="level-2"],
+  html.w-editor [data-filters-dropdown="level-3"],
+  html.w-editor [data-filters-dropdown="level-4"],
+  html.w-editor [data-filters-dropdown="level-5"],
+  html.w-editor [data-filters-control="clear-all-filters"] {
+    display: block !important;
   }

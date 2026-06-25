@@ -128,7 +128,7 @@ function updateClearAllButton() {
     '[data-filters-dropdown="level-4"] input[type="checkbox"]:checked,' +
     '[data-filters-dropdown="level-5"] input[type="checkbox"]:checked'
   );
-  btn.style.display = (hasL1 || hasCheckbox) ? '' : 'none';
+  btn.classList.toggle('is-active', hasL1 || hasCheckbox);
 }
 
 // ─── Clear-all button: click handler ─────────────────────────────────────────
@@ -161,14 +161,6 @@ function updateClearAllButton() {
   countEl.textContent = '(' + count + ')';
 })();
 
-// ─── Hide levels 2–5 on load ─────────────────────────────────────────────────
-(function initLevelVisibility() {
-  if (IS_DESIGNER) return;
-  ['level-2', 'level-3', 'level-4', 'level-5'].forEach(function (level) {
-    const el = document.querySelector('[data-filters-dropdown="' + level + '"]');
-    if (el) el.style.display = 'none';
-  });
-})();
 
 // ─── Reset a single level (uncheck, hide, clear count/label, remove tags) ────
 function resetLevel(levelNum) {

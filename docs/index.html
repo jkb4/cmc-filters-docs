@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMC Filters Engine v2.1 — Docs</title>
+  <title>CMC Filters Engine v2.2 — Docs</title>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -183,7 +183,7 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v2.1</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v2.2</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
@@ -689,6 +689,17 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-26 — v2.2</div>
+        <ul>
+          <li><strong>Clear-all button:</strong> element with <code>data-filters-control="clear-all-filters"</code> is hidden by default (CSS <code>display:none</code>); appears as soon as any filter (L1 radio or L2–L5 checkbox) is active; hides again when all filters cleared</li>
+          <li><strong><code>updateClearAllButton()</code>:</strong> called at end of every <code>applyFilters()</code> — checks for any <code>:checked</code> radio or checkbox across all levels</li>
+          <li><strong>Click handler:</strong> deselects L1 radio (removes visual classes), calls <code>clearTagsForLevel(1)</code>, <code>resetLevels()</code>, <code>applyFilters()</code> — button hides itself as a result</li>
+          <li><strong>Hover:</strong> <code>filter: brightness(0.8)</code> with transition — darkens button 20% on hover regardless of its background color</li>
+          <li><strong>ARIA:</strong> <code>aria-label="Clear all filters"</code> set in JS on init</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-26 — v2.1</div>
