@@ -168,7 +168,7 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v1.4</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v1.5</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
@@ -307,7 +307,10 @@
           <tr><td><code>showLevel3(categorySlug)</code></td><td>Shows Level 3 wrapper; detects fork automatically via non-empty <code>data-filter-parent-category</code> on items; filters/labels by active fork parent</td></tr>
           <tr><td><code>hideLevel3()</code></td><td>Hides + resets Level 3 — defined but not currently called (deferred)</td></tr>
           <tr><td><code>updateLevel3Availability()</code></td><td>Mutes Level 3 items based on currently VISIBLE products (dynamic). Skips fork-hidden items.</td></tr>
-          <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners to Level 3 checkboxes; calls applyFilters + updateLevel3Availability</td></tr>
+          <tr><td><code>initLevel3()</code></td><td>Attaches <code>change</code> listeners to Level 3 checkboxes; calls applyFilters, updateLevel3Availability; triggers showLevel4 + updateLevel4Availability when any Level 3 is checked</td></tr>
+          <tr><td><code>showLevel4(categorySlug)</code></td><td>Shows Level 4 wrapper; same fork logic as showLevel3 — fork keyed on Level 2 Carlton Type choice</td></tr>
+          <tr><td><code>updateLevel4Availability()</code></td><td>Mutes Level 4 items based on currently VISIBLE products. Skips fork-hidden items.</td></tr>
+          <tr><td><code>initLevel4()</code></td><td>Attaches <code>change</code> listeners to Level 4 checkboxes; calls applyFilters + updateLevel4Availability</td></tr>
         </tbody>
       </table>
 
@@ -404,6 +407,17 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-25 — v1.5</div>
+        <ul>
+          <li>Level 4 cascade implemented: <code>showLevel4()</code>, <code>updateLevel4Availability()</code>, <code>initLevel4()</code></li>
+          <li>Level 4 fork logic for Carlton: Horsepower (Stump Grinder) / Capacity (Wood Chipper) — same <code>getActiveLevel2ParentCategory()</code> key as Level 3</li>
+          <li><code>initLevel3()</code> updated to trigger <code>showLevel4</code> + <code>updateLevel4Availability</code> when any Level 3 checkbox is checked</li>
+          <li><code>resetLevels()</code> updated to reset Level 4 count + label</li>
+          <li>Lift Carriers Level 4 group is empty — hidden via Webflow conditional visibility</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-25 — v1.4</div>

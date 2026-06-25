@@ -68,6 +68,12 @@ function resetLevels() {
   if (count3El) count3El.textContent = '(0)';
   const label3El = document.querySelector('[data-filters-dropdown="lvl-3-label-get"]');
   if (label3El) label3El.textContent = 'Lvl 3 Filter';
+
+  // Reset Level 4 count and label
+  const count4El = document.querySelector('[data-filters-dropdown="level-4-filters-count"]');
+  if (count4El) count4El.textContent = '(0)';
+  const label4El = document.querySelector('[data-filters-dropdown="lvl-4-label-get"]');
+  if (label4El) label4El.textContent = 'Lvl 4 Filter';
 }
 
 // ─── Apply filters to product list ───────────────────────────────────────────
@@ -349,7 +355,7 @@ function updateLevel3Availability() {
   });
 }
 
-// ─── Level 3 checkboxes → re-apply filters ───────────────────────────────────
+// ─── Level 3 checkboxes → re-apply filters + show Level 4 ───────────────────
 (function initLevel3() {
   const level3 = document.querySelector('[data-filters-dropdown="level-3"]');
   if (!level3) return;
@@ -358,6 +364,113 @@ function updateLevel3Availability() {
     cb.addEventListener('change', function () {
       applyFilters();
       updateLevel3Availability();
+
+      const categoryInput = document.querySelector('[n4-list-field="category"][type="radio"]:checked');
+      if (!categoryInput) return;
+      const categorySlug = toSlug(categoryInput.getAttribute('n4-list-value'));
+
+      const anyChecked = level3.querySelectorAll('input[type="checkbox"]:checked').length > 0;
+      if (anyChecked) {
+        showLevel4(categorySlug);
+        updateLevel4Availability();
+      }
+    });
+  });
+})();
+
+// ─── Level 4: show (with fork logic — same pattern as Level 3) ───────────────
+function showLevel4(categorySlug) {
+  const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
+  if (!level4) return;
+  level4.style.display = '';
+
+  level4.querySelectorAll('[data-filter-list-id]').forEach(function (group) {
+    const match = group.getAttribute('data-filter-list-id') === categorySlug;
+    group.style.display = match ? '' : 'none';
+  });
+
+  const activeGroup = level4.querySelector('[data-filter-list-id="' + categorySlug + '"]');
+  const countEl = document.querySelector('[data-filters-dropdown="level-4-filters-count"]');
+  const labelEl = document.querySelector('[data-filters-dropdown="lvl-4-label-get"]');
+
+  if (!activeGroup) return;
+
+  // Detect fork: any Level 4 items with non-empty data-filter-parent-category?
+  const isFork = !!activeGroup.querySelector(
+    '[data-filter-dropdown="level-4-filters-item"][data-filter-parent-category]:not([data-filter-parent-category=""])'
+  );
+
+  if (isFork) {
+    // Fork parent key = same Level 2 choice (e.g. carlton-type-stump-grinder)
+    const selectedParent = getActiveLevel2ParentCategory(categorySlug);
+
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').forEach(function (item) {
+      const parentCat = item.getAttribute('data-filter-parent-category');
+      item.style.display = (parentCat === selectedParent) ? '' : 'none';
+    });
+
+    activeGroup.querySelectorAll('[data-filters-label="lvl-4-label-post"]').forEach(function (lbl) {
+      const parentCat = lbl.getAttribute('data-filter-parent-category');
+      lbl.style.display = (parentCat === selectedParent) ? '' : 'none';
+    });
+
+    let count = 0;
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').forEach(function (item) {
+      if (item.style.display !== 'none') count++;
+    });
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    const matchingLabel = selectedParent
+      ? activeGroup.querySelector('[data-filters-label="lvl-4-label-post"][data-filter-parent-category="' + selectedParent + '"]')
+      : null;
+    if (labelEl && matchingLabel) labelEl.textContent = matchingLabel.textContent.trim();
+
+  } else {
+    // Non-fork: show all items
+    activeGroup.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').forEach(function (item) {
+      item.style.display = '';
+    });
+
+    const wrap = activeGroup.querySelector('[data-filter-dropdown="level-4-filters-wrap"]');
+    const count = wrap ? wrap.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').length : 0;
+    if (countEl) countEl.textContent = '(' + count + ')';
+
+    const labelPost = activeGroup.querySelector('[data-filters-label="lvl-4-label-post"]');
+    if (labelEl && labelPost) labelEl.textContent = labelPost.textContent.trim();
+  }
+}
+
+// ─── Level 4: mute unavailable filters (based on visible products) ────────────
+function updateLevel4Availability() {
+  const availableFilters = new Set();
+  document.querySelectorAll('[n4-filters-item]').forEach(function (item) {
+    if (item.style.display === 'none') return;
+    item.querySelectorAll('[n4-list-field="filter"]').forEach(function (p) {
+      availableFilters.add(p.getAttribute('n4-list-value'));
+    });
+  });
+
+  const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
+  if (!level4) return;
+  level4.querySelectorAll('[data-filter-dropdown="level-4-filters-item"]').forEach(function (item) {
+    if (item.style.display === 'none') return; // fork-hidden — don't touch
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (!cb) return;
+    const available = availableFilters.has(cb.getAttribute('n4-list-value'));
+    item.style.opacity = available ? '' : '0.5';
+    item.style.pointerEvents = available ? '' : 'none';
+  });
+}
+
+// ─── Level 4 checkboxes → re-apply filters ───────────────────────────────────
+(function initLevel4() {
+  const level4 = document.querySelector('[data-filters-dropdown="level-4"]');
+  if (!level4) return;
+
+  level4.querySelectorAll('input[type="checkbox"]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      applyFilters();
+      updateLevel4Availability();
     });
   });
 })();
