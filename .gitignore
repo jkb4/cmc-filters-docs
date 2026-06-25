@@ -3,3 +3,8 @@ code/
 
 # Data files — local only
 data/
+products/
+export_25-06/
+
+# OS files
+.DS_Store
