@@ -1,0 +1,47 @@
+Category,Filter Level,Filter Label,Condition,Value,Value Slug
+CMC Lifts,1st Filter,Application,,Arbor,arbor
+CMC Lifts,1st Filter,Application,,Utility Vegetation Management,utility-vegetation-management
+CMC Lifts,1st Filter,Application,,Contractor & Rental,contractor-rental
+CMC Lifts,2nd Filter,Working Height,,40-60 ft,working-height-40-60-ft
+CMC Lifts,2nd Filter,Working Height,,65-85 ft,working-height-65-85-ft
+CMC Lifts,2nd Filter,Working Height,,85-105 ft,working-height-85-105-ft
+CMC Lifts,3rd Filter,Lift Carrier Compatible,,Yes,lift-carrier-compatible-yes
+CMC Lifts,3rd Filter,Lift Carrier Compatible,,No,lift-carrier-compatible-no
+Lift Carriers,1st Filter,CMC Model Compatibility,,60HD Arbor Pro,60hd-arbor-pro
+Lift Carriers,1st Filter,CMC Model Compatibility,,60HD Contractor Pro,60hd-contractor-pro
+Lift Carriers,1st Filter,CMC Model Compatibility,,72HD Arbor Pro,72hd-arbor-pro
+Lift Carriers,1st Filter,CMC Model Compatibility,,72HD Contractor Pro,72hd-contractor-pro
+Lift Carriers,1st Filter,CMC Model Compatibility,,75i,75i
+Lift Carriers,1st Filter,CMC Model Compatibility,,90i,90i
+Lift Carriers,1st Filter,CMC Model Compatibility,,90HD Arbor Pro,90hd-arbor-pro
+Lift Carriers,1st Filter,CMC Model Compatibility,,100HD Contractor Pro,100hd-contractor-pro
+Lift Carriers,2nd Filter,Make,,Ford,make-ford
+Lift Carriers,2nd Filter,Make,,Isuzu,make-isuzu
+Lift Carriers,3rd Filter,Max Weight Capacity,,TBD,tbd
+Trailers,1st Filter,Brand,,ANTS Trailers,brand-ants-trailers
+Trailers,1st Filter,Brand,,B-Wise Trailers,brand-bwise-trailers
+Trailers,2nd Filter,Type,,Open Deck,type-open-deck
+Trailers,2nd Filter,Type,,Enclosed,type-enclosed
+Trailers,2nd Filter,Type,,Drop Deck,type-drop-deck
+Trailers,2nd Filter,Type,,Conveyor,type-conveyor
+Trailers,3rd Filter,GVWR,,9990 lbs,gvwr-9990-lbs
+Trailers,3rd Filter,GVWR,,12000 lbs,gvwr-12000-lbs
+Trailers,3rd Filter,GVWR,,14000 lbs,gvwr-14000-lbs
+Carlton,1st Filter,Type,,Stump Grinder,type-stump-grinder
+Carlton,1st Filter,Type,,Wood Chipper,type-wood-chipper
+Carlton,2nd Filter,Drive Type,if Stump Grinder,Tracks,drive-type-tracks
+Carlton,2nd Filter,Drive Type,if Stump Grinder,Wheels,drive-type-wheels
+Carlton,2nd Filter,Cutting System,if Wood Chipper,Disc,cutting-system-disc
+Carlton,2nd Filter,Cutting System,if Wood Chipper,Drum,cutting-system-drum
+Carlton,3rd Filter,Horsepower,if Stump Grinder,35-40 HP,horsepower-35-40-hp
+Carlton,3rd Filter,Horsepower,if Stump Grinder,54-56 HP,horsepower-54-56-hp
+Carlton,3rd Filter,Horsepower,if Stump Grinder,74 HP,horsepower-74-hp
+Carlton,3rd Filter,Horsepower,if Stump Grinder,116-134 HP,horsepower-116-134-hp
+Carlton,3rd Filter,Horsepower,if Stump Grinder,140-173 HP,horsepower-140-173-hp
+Carlton,3rd Filter,Horsepower,if Stump Grinder,300 HP,horsepower-300-hp
+Carlton,3rd Filter,Capacity,if Wood Chipper,7",capacity-7in
+Carlton,3rd Filter,Capacity,if Wood Chipper,9",capacity-9in
+Carlton,3rd Filter,Capacity,if Wood Chipper,12",capacity-12in
+Carlton,3rd Filter,Capacity,if Wood Chipper,15",capacity-15in
+Carlton,3rd Filter,Capacity,if Wood Chipper,18",capacity-18in
+Carlton,3rd Filter,Capacity,if Wood Chipper,21",capacity-21in

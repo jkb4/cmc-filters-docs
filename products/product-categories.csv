@@ -1,0 +1,12 @@
+Name,Slug,Filters 2nd Level,Filters 3rd Level,Filters 4th Level
+
+// Each cell = semicolon-separated Filter item Names (must match exactly as in filters.csv)
+// 4th Level = empty for all — Carlton sub-filters are managed via Carlton Subtypes collection
+
+CMC Lifts,cmc-lifts,Application;Working Height;Lift Carrier Compatible,Arbor;Utility Vegetation Management;Contractor & Rental;40-60 ft;65-85 ft;85-105 ft;Carrier Compatible: Yes;Carrier Compatible: No,
+
+Lift Carriers,lift-carriers,CMC Model Compatibility;Make;Max Weight Capacity,60HD Arbor Pro;60HD Contractor Pro;72HD Arbor Pro;72HD Contractor Pro;75i;90i;90HD Arbor Pro;100HD Contractor Pro;Ford;Isuzu,
+
+Trailers,trailers,Brand;Trailer Type;GVWR,ANTS Trailers;B-Wise Trailers;Open Deck;Enclosed;Drop Deck;Conveyor;9990 lbs;12000 lbs;14000 lbs,
+
+Carlton,carlton,Equipment Type,Stump Grinder;Wood Chipper,

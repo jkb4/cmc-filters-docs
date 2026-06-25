@@ -1,0 +1,45 @@
+Field Name,Type,Notes
+Name,Plain Text,Product name
+Slug,Plain Text,URL slug
+Collection ID,System,6a2a882fc0efdb864616952f
+Locale ID,System,
+Item ID,System,
+Archived,Boolean,
+Draft,Boolean,
+Created On,DateTime,
+Updated On,DateTime,
+Published On,DateTime,
+SEO: Open Graph Preview,Image,
+SEO: Title Tag,Plain Text,
+SEO: Meta Description,Plain Text,
+Sort Order,Number,
+[Product] Category,Reference → Product Categories,Single ref — cmc-lifts / lift-carriers / trailers / carlton
+[Product] Filters,Multi-Reference → Filters,ALL filter values in one field — semicolon separated slugs — KEY FIELD FOR FILTERING
+Product Series,Plain Text,e.g. Arbor Pro® Series
+Pre-owned,Boolean (Toggle),true / false — used for Pre-owned filter
+[Hero] Heading H1,Rich Text,
+[Hero] Blurb Large H2,Rich Text,
+[Hero] Blurb Small,Plain Text,
+[Hero] Product Image,Image URL,
+[Hero] HotSpots SVG Map Embed,Rich Text,SVG embed code
+[Hero] HotSpots Tooltip Cards,Multi-Reference,
+[Hero] HotSpot Visible on 1st Load,Plain Text,e.g. 05
+[Hero] Card Title,Plain Text,
+[Hero] Card Blurb,Plain Text,
+[Hero] Card Stat 1 Value Max. Working Height,Plain Text,e.g. 100 ft
+[Hero] Card Stat 2 Value Max. Lateral Reach,Plain Text,e.g. 50 ft
+[Hero] Card Stat 3 Value Max. Basket Load Capacity,Plain Text,e.g. 507 lbs
+[Hero] Card Stat 4 Value Total Net Weight,Plain Text,e.g. 9446 lbs
+[Hero] Card Button Link 1,Link,
+[Hero] Card Button Link 2,Link,
+[Specifications] Stats,Multi-Reference,
+[Specification] File,File,PDF spec sheet
+[Specifications] Blurb,Plain Text,
+Gallery Images,Multi-Image,
+[Products] Videos (optional),Multi-Reference,
+LIFTS ONLY [Products] Lifts Inclusions,Multi-Reference,Only for CMC Lifts category
+Compatible Lift Carriers,Multi-Reference → Products,Cross-ref to other products
+Compatible Trailers,Multi-Reference → Products,Cross-ref to other products
+Same Series Related Models,Multi-Reference → Products,Cross-ref to other products
+[Products] Features (optional),Multi-Reference,
+Thumbnail Image,Image URL,
