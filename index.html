@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CMC Filters Engine v2.3 — Docs</title>
+  <title>CMC Filters Engine v2.4 — Docs</title>
   <style>
     :root {
       --bg: #0f0f0f;
@@ -146,9 +146,7 @@
     <h3>Getting Started</h3>
     <ul>
       <li><a href="#overview" class="active">Overview</a></li>
-      <li><a href="#local-vs-webflow">Local vs Webflow</a></li>
       <li><a href="#equip2-embed">equip2_wrap Embeds</a></li>
-      <li><a href="#structure">File Structure</a></li>
     </ul>
     <div class="section-gap">
       <h3>User Experience</h3>
@@ -183,7 +181,7 @@
   <main>
 
     <section id="overview">
-      <h1>CMC Filters Engine <span class="version-tag">v2.3</span></h1>
+      <h1>CMC Filters Engine <span class="version-tag">v2.4</span></h1>
       <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, JS with <code>n4-*</code> attributes.</p>
       <p>
         Replaces Finsweet's <code>fs-cmsfilter</code> with a JS engine built for CMC's
@@ -191,34 +189,6 @@
         availability muting, and Carlton's fork logic (conditional Level 3/4 based on Level 2 choice).
         Each level acts as a gate — AND between levels, OR within a level.
       </p>
-
-      <h2 id="local-vs-webflow">Local vs Webflow</h2>
-      <p>The system is split across two places — local files you edit here, and Webflow where they are deployed.</p>
-
-      <h3>Local (this repo)</h3>
-      <table>
-        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
-        <tbody>
-          <tr><td><code>code/filters_engine.js</code></td><td>Main filter logic — all JS functions. Paste into Webflow JS embed after editing.</td></tr>
-          <tr><td><code>code/filters_engine.css</code></td><td>Filter UI overrides — currently empty, reserved. Paste into Webflow CSS embed when needed.</td></tr>
-          <tr><td><code>docs/index.html</code></td><td>This documentation file.</td></tr>
-          <tr><td><code>products/import-1-filter-labels.csv</code></td><td>Filter Labels CMS collection import.</td></tr>
-          <tr><td><code>products/import-2-filter-values.csv</code></td><td>Filters CMS collection import.</td></tr>
-          <tr><td><code>products/product-categories-import.csv</code></td><td>Categories reference.</td></tr>
-          <tr><td><code>products/schema-products-collection.csv</code></td><td>Products schema reference.</td></tr>
-        </tbody>
-      </table>
-
-      <h3>Webflow</h3>
-      <table>
-        <thead><tr><th>Location</th><th>What lives there</th></tr></thead>
-        <tbody>
-          <tr><td>CMS Collections</td><td>Filter Labels, Filters, Products — source of truth for all filter values and slugs.</td></tr>
-          <tr><td>Designer — filter form</td><td><code>n4-*</code> and <code>data-*</code> attributes on inputs, items, and wrappers.</td></tr>
-          <tr><td>Designer — product list</td><td><code>n4-filters-item</code>, <code>n4-list-field</code>, <code>n4-list-value</code> on product cards.</td></tr>
-          <tr><td><code>equip2_wrap</code> section — Custom Code embeds</td><td>Two embeds: <code>filters_engine.css</code> (CSS, empty) + <code>filters_engine.js</code> (JS engine).</td></tr>
-        </tbody>
-      </table>
 
       <h2 id="equip2-embed">equip2_wrap — Code Embeds</h2>
       <p>
@@ -242,18 +212,6 @@
         <strong>Deploying changes:</strong> After editing <code>filters_engine.js</code> locally, open the JS Custom Code embed in Webflow Designer, replace the full content, then publish. Same process for CSS when it has content.
       </div>
 
-      <h2 id="structure">File Structure</h2>
-      <pre><code>CMS/
-├── code/
-│   ├── filters_engine.js   ← main filter logic (→ Webflow JS embed in equip2_wrap)
-│   └── filters_engine.css  ← filter UI overrides (→ Webflow CSS embed in equip2_wrap)
-├── docs/
-│   └── index.html          ← this file
-└── products/
-    ├── import-1-filter-labels.csv     ← Filter Labels collection
-    ├── import-2-filter-values.csv     ← Filters collection
-    ├── product-categories-import.csv  ← Categories reference
-    └── schema-products-collection.csv</code></pre>
     </section>
 
     <section id="attributes">
@@ -688,6 +646,14 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="changelog">
       <h2>Changelog</h2>
+
+      <div class="changelog-entry">
+        <div class="date">2026-06-26 — v2.4</div>
+        <ul>
+          <li><strong>Muted filters fully disabled for keyboard:</strong> added <code>cb.disabled = !available</code> to all availability muting functions (L2–L5) and fork muting — previously <code>pointer-events: none</code> blocked mouse but Tab + Enter/Space still worked on muted items</li>
+          <li><strong>Docs: local env moved to <code>internal.html</code>:</strong> "Local vs Webflow" and "File Structure" sections removed from public docs, moved to a local-only <code>docs/internal.html</code> (added to <code>.gitignore</code>)</li>
+        </ul>
+      </div>
 
       <div class="changelog-entry">
         <div class="date">2026-06-26 — v2.3</div>
