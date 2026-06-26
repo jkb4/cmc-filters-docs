@@ -184,9 +184,9 @@
 
     <section id="overview">
       <h1>CMC Filters Engine <span class="version-tag">v2.3</span></h1>
-      <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, pure JS with <code>n4-*</code> attributes.</p>
+      <p class="subtitle">Custom Webflow CMS filter system — no Finsweet, JS with <code>n4-*</code> attributes.</p>
       <p>
-        Replaces Finsweet's <code>fs-cmsfilter</code> with a hand-written engine tuned for CMC's
+        Replaces Finsweet's <code>fs-cmsfilter</code> with a JS engine built for CMC's
         multi-level filter hierarchy. Supports up to 5 visible levels with cascading show/hide,
         availability muting, and Carlton's fork logic (conditional Level 3/4 based on Level 2 choice).
         Each level acts as a gate — AND between levels, OR within a level.
@@ -381,7 +381,6 @@
           <tr><td><code>getLevel3ForkParent(slug)</code></td><td>Returns fork parent key by reading visible Level 3 items' <code>data-filter-parent-category</code> — used by <code>showLevel4()</code></td></tr>
           <tr><td><code>getLevel4ForkParent(slug)</code></td><td>Returns fork parent key by reading visible Level 4 items' <code>data-filter-parent-category</code> — parallel to <code>getLevel3ForkParent()</code>, used by <code>showLevel5()</code></td></tr>
           <tr><td><code>updateLevel1Count()</code></td><td>Counts Level 1 radio items, renders <code>(N)</code> in count element</td></tr>
-          <tr><td><code>initLevelVisibility()</code></td><td>Hides level-2 through level-5 on page load (skipped in Webflow Designer)</td></tr>
           <tr><td><code>resetLevel(n)</code></td><td>Hides + unchecks a single level; resets its count and label. Used for cascade resets.</td></tr>
           <tr><td><code>resetLevels()</code></td><td>Calls <code>resetLevel()</code> for levels 2–5. Used on Level 1 change.</td></tr>
           <tr><td><code>applyFilters()</code></td><td>Main filter function. <strong>AND between levels, OR within level</strong> — each level with checked items is a gate; product must pass all active gates.</td></tr>
@@ -509,7 +508,7 @@ item.style.display = (parentCat === selectedParent) ? '' : 'none';</code></pre>
 
     <section id="ux">
       <h2>User Experience</h2>
-      <p class="subtitle">Written for designers. No code — just behavior.</p>
+      <p class="subtitle">This section describes how the filter system behaves from a user's perspective — interactions, states, and decision points at each step.</p>
       <p>
         The filter system is a progressive multi-step funnel. Each step narrows the product list.
         Steps appear one at a time as the user makes selections — the page never shows all filters at once.
